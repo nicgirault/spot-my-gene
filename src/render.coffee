@@ -30,5 +30,9 @@ d3.SpotMyGene.Core.prototype.render = (data, params) ->
     .attr('height', params.cell.height)
     .style('margin-right', 2)
     .style 'fill', colorScale
+    .on 'mouseover', (d, i, j) ->
+      d3.SpotMyGene.dispatch.cellMouseover @, d, i, j
+    .on 'mouseout', (d, i, j) ->
+      d3.SpotMyGene.dispatch.cellMouseout @, d, i, j
 
   # hightlightOnMouseover cell, params

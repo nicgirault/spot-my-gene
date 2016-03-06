@@ -19,7 +19,7 @@ d3.SpotMyGene.validateParams = function(params, data) {
   }
 };
 
-d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout');
+d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout');
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params) {
   if (params.rows.labels.showTooltips) {
@@ -49,6 +49,18 @@ d3.SpotMyGene.listenSampleMouseover = function(element, params) {
   }
 };
 
+d3.SpotMyGene.dispatch.on('cellMouseover', function(cell, d, i, j) {
+  d3.select(cell).classed('active', true);
+  d3.select(".columns-labels text:nth-child(" + (i + 1) + ")").classed('active', true);
+  return d3.select(".rows-labels text:nth-child(" + (j + 1) + ")").classed('active', true);
+});
+
+d3.SpotMyGene.dispatch.on('cellMouseout', function(cell, d, i, j) {
+  d3.select(cell).classed('active', false);
+  d3.select(".columns-labels text:nth-child(" + (i + 1) + ")").classed('active', false);
+  return d3.select(".rows-labels text:nth-child(" + (j + 1) + ")").classed('active', false);
+});
+
 d3.SpotMyGene.buildColorScale = function(data) {
   var colors;
   colors = ['#005824', '#1A693B', '#347B53', '#4F8D6B', '#699F83', '#83B09B', '#9EC2B3', '#B8D4CB', '#D2E6E3', '#EDF8FB', '#FFFFFF', '#F1EEF6', '#E6D3E1', '#DBB9CD', '#D19EB9', '#C684A4', '#BB6990', '#B14F7C', '#A63467', '#9B1A53', '#91003F'];
@@ -77,7 +89,7 @@ d3.SpotMyGene.renderRowsLabels = function(parentElement, rows, params) {
   var container, label;
   if (parentElement.select('.rows-labels').empty()) {
     container = parentElement.append('g').attr('class', 'rows-labels').attr('transform', 'translate(' + params.margins.left + ',' + params.margins.top + ')');
-    label = container.selectAll('.label').data(rows).enter().append('text').text(function(d) {
+    label = container.selectAll('.label').data(rows).enter().append('text').attr('class', 'label').text(function(d) {
       return d.id;
     }).attr('x', 0).attr('y', function(d, i) {
       return i * params.cell.height;
@@ -108,5 +120,9 @@ d3.SpotMyGene.Core.prototype.render = function(data, params) {
     return i * params.cell.width;
   }).attr('y', function(d, i, j) {
     return j * params.cell.height;
-  }).attr('width', params.cell.width).attr('height', params.cell.height).style('margin-right', 2).style('fill', colorScale);
+  }).attr('width', params.cell.width).attr('height', params.cell.height).style('margin-right', 2).style('fill', colorScale).on('mouseover', function(d, i, j) {
+    return d3.SpotMyGene.dispatch.cellMouseover(this, d, i, j);
+  }).on('mouseout', function(d, i, j) {
+    return d3.SpotMyGene.dispatch.cellMouseout(this, d, i, j);
+  });
 };

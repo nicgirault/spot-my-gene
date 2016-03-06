@@ -1,12 +1,21 @@
 .spot-my-gene {
-  .heatmap {
-    text {
-     cursor: default;
-    }
-    .cell.active {
-      stroke-width: 1px;
-      stroke: black;
-    }
+  text {
+   cursor: default;
+  }
+  .cell.active {
+    opacity: 0.5;
+  }
+  .cell {
+    stroke: #E6E6E6;
+    stroke-width: 1px;
+  }
+  .rows-labels .active {
+    font-weight: bold;
+    fill: #F44336;
+  }
+  .columns-labels .active {
+    font-weight: bold;
+    fill: #F44336;
   }
 }
 

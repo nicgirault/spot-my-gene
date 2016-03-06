@@ -1,9 +1,20 @@
-.spot-my-gene .heatmap text {
+.spot-my-gene text {
   cursor: default;
 }
-.spot-my-gene .heatmap .cell.active {
+.spot-my-gene .cell.active {
+  opacity: 0.5;
+}
+.spot-my-gene .cell {
+  stroke: #E6E6E6;
   stroke-width: 1px;
-  stroke: black;
+}
+.spot-my-gene .rows-labels .active {
+  font-weight: bold;
+  fill: #F44336;
+}
+.spot-my-gene .columns-labels .active {
+  font-weight: bold;
+  fill: #F44336;
 }
 @-webkit-keyframes appear {
   from {

@@ -32,6 +32,7 @@ d3.SpotMyGene.renderRowsLabels = (parentElement, rows, params) ->
       .data(rows)
       .enter()
       .append('text')
+      .attr 'class', 'label'
       .text (d) -> d.id
       .attr('x', 0)
       .attr 'y', (d, i) ->

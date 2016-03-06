@@ -10,6 +10,7 @@ gulp.task 'build', ['less'], ->
     'src/spot-my-gene.coffee'
     'src/mouseover-gene.coffee'
     'src/mouseover-sample.coffee'
+    'src/mouseover-cell.coffee'
     'src/colors.coffee'
     'src/highlight.coffee'
     'src/labels.coffee'
@@ -21,6 +22,7 @@ gulp.task 'build', ['less'], ->
 
 gulp.task 'watch', ['build'], ->
   gulp.watch 'src/**/*.coffee', ['build']
+  gulp.watch 'src/**/*.less', ['less']
 
 gulp.task 'less', (done) ->
   gulp.src 'src/*.less'
