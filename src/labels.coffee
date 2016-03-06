@@ -14,9 +14,11 @@ d3.SpotMyGene.renderColumnsLabels = (parentElement, columns, params) ->
         i * params.cell.width
       .style('text-anchor', 'left')
       .attr('transform', 'translate(' + params.cell.width / 1.5 + ',-6) rotate (-90)')
-
-    if params.columns.labels.showTooltips
-      d3.SpotMyGene.addTooltips label, params.columns.labels.tooltipContent
+      .on 'mouseover', (d, i, j) ->
+        d3.SpotMyGene.dispatch.sampleMouseover d, i, j
+      .on 'mouseout', (d, i, j) ->
+        d3.SpotMyGene.dispatch.sampleMouseover d, i, j
+      d3.SpotMyGene.listenSampleMouseover(label, params)
 
   parentElement
 
@@ -36,9 +38,9 @@ d3.SpotMyGene.renderRowsLabels = (parentElement, rows, params) ->
         i * params.cell.height
       .style('text-anchor', 'end')
       .attr("transform", "translate(-6," + params.cell.height / 1.5 + ")")
-
-
-    if params.rows.labels.showTooltips
-      d3.SpotMyGene.addTooltips label, params.rows.labels.tooltipContent
-
+      .on 'mouseover', (d, i, j) ->
+        d3.SpotMyGene.dispatch.geneMouseover d, i, j
+      .on 'mouseout', (d, i, j) ->
+        d3.SpotMyGene.dispatch.geneMouseout d, i, j
+  d3.SpotMyGene.listenGeneMouseover(label, params)
   parentElement

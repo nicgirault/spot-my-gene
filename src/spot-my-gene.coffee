@@ -13,3 +13,10 @@ d3.SpotMyGene.validateParams = (params, data) ->
 
   if params.maxHeight < params.cell.height * data.rows.length
     params.cell.height = params.maxHeight / data.rows.length
+
+d3.SpotMyGene.dispatch = d3.dispatch(
+  'geneMouseover',
+  'sampleMouseover',
+  'geneMouseout',
+  'sampleMouseout'
+)

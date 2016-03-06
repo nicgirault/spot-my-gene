@@ -8,7 +8,8 @@ less = require 'gulp-less'
 gulp.task 'build', ['less'], ->
   gulp.src [
     'src/spot-my-gene.coffee'
-    'src/tooltip.coffee'
+    'src/mouseover-gene.coffee'
+    'src/mouseover-sample.coffee'
     'src/colors.coffee'
     'src/highlight.coffee'
     'src/labels.coffee'

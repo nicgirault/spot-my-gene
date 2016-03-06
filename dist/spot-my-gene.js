@@ -19,15 +19,34 @@ d3.SpotMyGene.validateParams = function(params, data) {
   }
 };
 
-d3.SpotMyGene.addTooltips = function(element, getContent) {
-  var tip;
-  tip = d3.tip().direction('s').offset([20, 0]).html(getContent);
-  return element.call(tip).on('mouseover', function(d) {
-    return tip.attr('class', 'd3-tip appear').show(d);
-  }).on('mouseout', function(d) {
-    tip.attr('class', 'd3-tip').show(d);
-    return tip.hide();
-  });
+d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout');
+
+d3.SpotMyGene.listenGeneMouseover = function(element, params) {
+  if (params.rows.labels.showTooltips) {
+    d3.SpotMyGene.geneTip = d3.tip().direction('s').offset([20, 0]).html(params.rows.labels.tooltipContent);
+    element.call(d3.SpotMyGene.geneTip);
+    d3.SpotMyGene.dispatch.on('geneMouseover', function(d, i, j) {
+      return d3.SpotMyGene.geneTip.attr('class', 'd3-tip appear').show(d);
+    });
+    return d3.SpotMyGene.dispatch.on('geneMouseout', function(d, i, j) {
+      d3.SpotMyGene.geneTip.attr('class', 'd3-tip').show(d);
+      return d3.SpotMyGene.geneTip.hide();
+    });
+  }
+};
+
+d3.SpotMyGene.listenSampleMouseover = function(element, params) {
+  if (params.columns.labels.showTooltips) {
+    d3.SpotMyGene.sampleTip = d3.tip().direction('s').offset([20, 0]).html(params.columns.labels.tooltipContent);
+    element.call(d3.SpotMyGene.sampleTip);
+    d3.SpotMyGene.dispatch.on('sampleMouseover', function(d, i, j) {
+      return d3.SpotMyGene.sampleTip.attr('class', 'd3-tip appear').show(d);
+    });
+    return d3.SpotMyGene.dispatch.on('sampleMouseout', function(d, i, j) {
+      d3.SpotMyGene.sampleTip.attr('class', 'd3-tip').show(d);
+      return d3.SpotMyGene.sampleTip.hide();
+    });
+  }
 };
 
 d3.SpotMyGene.buildColorScale = function(data) {
@@ -44,10 +63,12 @@ d3.SpotMyGene.renderColumnsLabels = function(parentElement, columns, params) {
       return d.name;
     }).attr('x', 0).attr('y', function(d, i) {
       return i * params.cell.width;
-    }).style('text-anchor', 'left').attr('transform', 'translate(' + params.cell.width / 1.5 + ',-6) rotate (-90)');
-    if (params.columns.labels.showTooltips) {
-      d3.SpotMyGene.addTooltips(label, params.columns.labels.tooltipContent);
-    }
+    }).style('text-anchor', 'left').attr('transform', 'translate(' + params.cell.width / 1.5 + ',-6) rotate (-90)').on('mouseover', function(d, i, j) {
+      return d3.SpotMyGene.dispatch.sampleMouseover(d, i, j);
+    }).on('mouseout', function(d, i, j) {
+      return d3.SpotMyGene.dispatch.sampleMouseover(d, i, j);
+    });
+    d3.SpotMyGene.listenSampleMouseover(label, params);
   }
   return parentElement;
 };
@@ -60,11 +81,13 @@ d3.SpotMyGene.renderRowsLabels = function(parentElement, rows, params) {
       return d.id;
     }).attr('x', 0).attr('y', function(d, i) {
       return i * params.cell.height;
-    }).style('text-anchor', 'end').attr("transform", "translate(-6," + params.cell.height / 1.5 + ")");
-    if (params.rows.labels.showTooltips) {
-      d3.SpotMyGene.addTooltips(label, params.rows.labels.tooltipContent);
-    }
+    }).style('text-anchor', 'end').attr("transform", "translate(-6," + params.cell.height / 1.5 + ")").on('mouseover', function(d, i, j) {
+      return d3.SpotMyGene.dispatch.geneMouseover(d, i, j);
+    }).on('mouseout', function(d, i, j) {
+      return d3.SpotMyGene.dispatch.geneMouseout(d, i, j);
+    });
   }
+  d3.SpotMyGene.listenGeneMouseover(label, params);
   return parentElement;
 };
 
