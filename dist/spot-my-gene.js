@@ -75,10 +75,10 @@ d3.SpotMyGene.renderColumnsLabels = function(parentElement, columns, params) {
     return d.name;
   }).attr('x', 0).attr('y', function(d, i) {
     return i * params.heatmap.cell.width;
-  }).style('text-anchor', 'left').attr('transform', 'translate(' + params.heatmap.cell.width / 1.5 + ',-6) rotate (-90)').on('mouseover', function(d, i, j) {
+  }).style('text-anchor', 'left').attr('transform', 'translate(' + params.heatmap.cell.width / 2 + ',-6) rotate (-90)').on('mouseover', function(d, i, j) {
     return d3.SpotMyGene.dispatch.sampleMouseover(d, i, j);
   }).on('mouseout', function(d, i, j) {
-    return d3.SpotMyGene.dispatch.sampleMouseover(d, i, j);
+    return d3.SpotMyGene.dispatch.sampleMouseout(d, i, j);
   });
   d3.SpotMyGene.listenSampleMouseover(label, params);
   return parentElement;
@@ -198,10 +198,10 @@ d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
 };
 
 d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
-  var cellWidth, index, setSize;
+  var cellWidth, index, setNodeSize;
   cellWidth = width / leavesNumber;
   index = 0;
-  setSize = function(node) {
+  setNodeSize = function(node) {
     var child, k, len, ref;
     if (node.name != null) {
       node.x = cellWidth * index + cellWidth / 2;
@@ -210,7 +210,7 @@ d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
       ref = node.children;
       for (k = 0, len = ref.length; k < len; k++) {
         child = ref[k];
-        setSize(child);
+        setNodeSize(child);
       }
       if (node.children.length === 1) {
         return node.x = node.children[0].x;
@@ -219,5 +219,5 @@ d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
       }
     }
   };
-  return setSize(root);
+  return setNodeSize(root);
 };
