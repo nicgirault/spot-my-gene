@@ -1,12 +1,28 @@
 d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   return unless data
-
-  svg.style('height', params.heatmap.cell.height * data.rows.length + params.sampleLabels.height)
-
   colorScale = d3.SpotMyGene.buildColorScale()
 
   svg = d3.SpotMyGene.renderRowsLabels svg, data.rows, params
   svg = d3.SpotMyGene.renderColumnsLabels svg, data.columns, params
+
+  tree = [
+    children: [
+      children: [
+        children: [
+          name: 'A'
+        ,
+          name: 'B'
+        ]
+      ,
+        children: [
+          name: 'C'
+        ,
+          name: 'D'
+        ]
+      ]
+    ]
+  ]
+  d3.SpotMyGene.renderDendogram svg, tree, params
 
   cell = svg.select '.heatmap'
     .selectAll('g')

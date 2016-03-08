@@ -1,5 +1,3 @@
-var clusterCol, data, dendCol, lineCol, lineDataCol, linkCol, linksCol, nodesCol;
-
 d3.SpotMyGene = function(data, params) {
   var instance;
   instance = new d3.SpotMyGene.Core(params);
@@ -14,8 +12,9 @@ d3.SpotMyGene.Core = function(params) {
 
 d3.SpotMyGene.validateParams = function(params, data) {
   var heatmapWidth;
-  heatmapWidth = params.width - params.geneLabels.length;
+  heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height;
   params.heatmap.cell.width = heatmapWidth / data.rows[0].values.length;
+  params.sampleDendogram.width = heatmapWidth;
   if (params.maxHeight < params.heatmap.cell.height * data.rows.length) {
     return params.heatmap.cell.height = params.maxHeight / data.rows.length;
   }
@@ -101,98 +100,42 @@ d3.SpotMyGene.renderRowsLabels = function(parentElement, rows, params) {
   return parentElement;
 };
 
-data = [
-  {
-    children: [
-      {
-        children: [
-          {
-            children: [
-              {
-                name: 'A'
-              }, {
-                name: 'B'
-              }
-            ]
-          }, {
-            children: [
-              {
-                name: 'C'
-              }, {
-                name: 'D'
-              }
-            ]
-          }
-        ]
-      }, {
-        children: [
-          {
-            children: [
-              {
-                name: 'E'
-              }, {
-                name: 'F'
-              }
-            ]
-          }, {
-            children: [
-              {
-                name: 'G'
-              }, {
-                name: 'H'
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  }
-];
-
-clusterCol = d3.layout.cluster().size([400, 200]);
-
-lineCol = d3.svg.line().x(function(d) {
-  return d.x;
-}).y(function(d) {
-  return d.y;
-});
-
-lineDataCol = function(d) {
-  var points;
-  points = [
-    {
-      x: d.source.x,
-      y: d.source.y
-    }, {
-      x: d.target.x,
-      y: d.source.y
-    }, {
-      x: d.target.x,
-      y: d.target.y
-    }
-  ];
-  return lineCol(points);
-};
-
-nodesCol = clusterCol.nodes(data[0]);
-
-linksCol = clusterCol.links(nodesCol);
-
-dendCol = d3.select("#cluster").append("svg").attr("id", "svg_dendCol").attr("width", 420).attr("height", 210).append("g");
-
-linkCol = dendCol.append("g").attr("class", "dendCols").selectAll(".linkColg").data(linksCol).enter().append("path").attr("class", "link").attr("d", lineDataCol).attr('id', function(d) {
-  return 'colNode_id-' + parseInt(d.target.x) + '-' + parseInt(d.target.y);
-});
-
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cell, colorScale;
+  var cell, colorScale, tree;
   if (!data) {
     return;
   }
-  svg.style('height', params.heatmap.cell.height * data.rows.length + params.sampleLabels.height);
   colorScale = d3.SpotMyGene.buildColorScale();
   svg = d3.SpotMyGene.renderRowsLabels(svg, data.rows, params);
   svg = d3.SpotMyGene.renderColumnsLabels(svg, data.columns, params);
+  tree = [
+    {
+      children: [
+        {
+          children: [
+            {
+              children: [
+                {
+                  name: 'A'
+                }, {
+                  name: 'B'
+                }
+              ]
+            }, {
+              children: [
+                {
+                  name: 'C'
+                }, {
+                  name: 'D'
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ];
+  d3.SpotMyGene.renderDendogram(svg, tree, params);
   return cell = svg.select('.heatmap').selectAll('g').data(data.rows).enter().append('g').selectAll('rect').data(function(d) {
     return d.values;
   }).enter().append('rect').attr('class', 'cell').attr('x', function(d, i) {
@@ -208,11 +151,73 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
   var heatmap, svg;
-  svg = d3.select(params.container).append('svg').style('width', params.width);
+  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.heatmap.cell.height * data.rows.length + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top);
   svg.selectAll('*').remove();
-  heatmap = svg.append('g').attr('class', 'heatmap-with-labels').attr('transform', "translate(" + params.margins.left + ", " + params.margins.top + ")");
+  svg.append('g').attr('class', 'sample-dendogram').attr('transform', "translate(" + (params.margins.left + params.geneLabels.length + params.geneDendogram.height) + ", 0)");
+  svg.append('g').attr('class', 'gene-dendogram');
+  heatmap = svg.append('g').attr('class', 'heatmap-with-labels').attr('transform', "translate(" + (params.margins.left + params.geneDendogram.height) + ", " + (params.margins.top + params.sampleDendogram.height) + ")");
   heatmap.append('g').attr('class', 'sample-labels').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
   heatmap.append('g').attr('class', 'gene-labels').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
   heatmap.append('g').attr('class', 'heatmap').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
   return this.render(svg, data, params);
+};
+
+d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
+  var cluster, height, leaves, line, lineData, links, nodes, width;
+  width = params.sampleDendogram.width;
+  height = params.sampleDendogram.height;
+  cluster = d3.layout.cluster().size([width, height]);
+  line = d3.svg.line().x(function(d) {
+    return d.x;
+  }).y(function(d) {
+    return d.y;
+  });
+  lineData = function(d, i, j) {
+    var points;
+    points = [
+      {
+        x: d.source.x,
+        y: d.source.y
+      }, {
+        x: d.target.x,
+        y: d.source.y
+      }, {
+        x: d.target.x,
+        y: d.target.y
+      }
+    ];
+    return line(points);
+  };
+  nodes = cluster.nodes(tree[0]);
+  links = cluster.links(nodes);
+  leaves = nodes.filter(function(node) {
+    return node.name != null;
+  });
+  d3.SpotMyGene.resizeTree(width, leaves.length, nodes[0]);
+  return svg.select('.sample-dendogram').selectAll('.link').data(links).enter().append('path').attr('class', 'link').attr('d', lineData);
+};
+
+d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
+  var cellWidth, index, setSize;
+  cellWidth = width / leavesNumber;
+  index = 0;
+  setSize = function(node) {
+    var child, k, len, ref;
+    if (node.name != null) {
+      node.x = cellWidth * index + cellWidth / 2;
+      return index++;
+    } else {
+      ref = node.children;
+      for (k = 0, len = ref.length; k < len; k++) {
+        child = ref[k];
+        setSize(child);
+      }
+      if (node.children.length === 1) {
+        return node.x = node.children[0].x;
+      } else {
+        return node.x = (node.children[0].x + node.children[1].x) / 2;
+      }
+    }
+  };
+  return setSize(root);
 };

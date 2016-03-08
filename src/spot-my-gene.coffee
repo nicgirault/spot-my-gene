@@ -8,8 +8,9 @@ d3.SpotMyGene.Core = (params) ->
   @
 
 d3.SpotMyGene.validateParams = (params, data) ->
-  heatmapWidth = params.width - params.geneLabels.length
+  heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height
   params.heatmap.cell.width = heatmapWidth / data.rows[0].values.length
+  params.sampleDendogram.width = heatmapWidth
 
   if params.maxHeight < params.heatmap.cell.height * data.rows.length
     params.heatmap.cell.height = params.maxHeight / data.rows.length
