@@ -1,9 +1,9 @@
 d3.SpotMyGene.listenGeneMouseover = (element, params) ->
-  if params.rows.labels.showTooltips
+  if params.geneLabels.showTooltips
     d3.SpotMyGene.geneTip = d3.tip()
       .direction('s')
       .offset([20, 0])
-      .html params.rows.labels.tooltipContent
+      .html params.geneLabels.tooltipContent
 
     element.call d3.SpotMyGene.geneTip
 

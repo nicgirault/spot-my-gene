@@ -14,7 +14,9 @@ gulp.task 'build', ['less'], ->
     'src/colors.coffee'
     'src/highlight.coffee'
     'src/labels.coffee'
-    'src/render.coffee'
+    'src/clustering.coffee'
+    'src/render-heatmap.coffee'
+    'src/render-layout.coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true

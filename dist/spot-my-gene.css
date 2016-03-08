@@ -16,6 +16,11 @@
   font-weight: bold;
   fill: #F44336;
 }
+.spot-my-gene .link {
+  fill: none;
+  stroke: grey;
+  stroke-width: 2px;
+}
 @-webkit-keyframes appear {
   from {
     opacity: 0;

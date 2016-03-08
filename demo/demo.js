@@ -3,45 +3,49 @@ params = {
   width: 800,
   maxHeight: 600,
   margins: {
-    left: 100,
-    top: 100
+    left: 10,
+    top: 10,
   },
-  cell: {
-    height: 30
-  },
-  columns: {
-    labels: {
-      height: 100,
-      showTooltips: true,
-      tooltipContent: function(d) {
-        var html, key, ref, value;
-        html = '<ul>';
-        ref = d.summary;
-        for (key in ref) {
-          value = ref[key];
-          html += "<li><b>" + key + "</b>: " + value + "</li>";
-        }
-        html += '</ul>';
-        return html;
+  sampleLabels: {
+    length: 30,
+    showTooltips: true,
+    tooltipContent: function(d) {
+      var html, key, ref, value;
+      html = '<ul>';
+      ref = d.summary;
+      for (key in ref) {
+        value = ref[key];
+        html += "<li><b>" + key + "</b>: " + value + "</li>";
       }
-    }
+      html += '</ul>';
+      return html;
+    },
   },
-  rows: {
-    labels: {
-      width: 100,
-      showTooltips: true,
-      tooltipContent: function(d) {
-        var html, key, ref, value;
-        html = '<ul>';
-        ref = d.metadata;
-        for (key in ref) {
-          value = ref[key];
-          html += "<li><b>" + key + "</b>: " + value + "</li>";
-        }
-        html += '</ul>';
-        return html;
+  geneLabels: {
+    length: 30,
+    showTooltips: true,
+    tooltipContent: function(d) {
+      var html, key, ref, value;
+      html = '<ul>';
+      ref = d.metadata;
+      for (key in ref) {
+        value = ref[key];
+        html += "<li><b>" + key + "</b>: " + value + "</li>";
       }
-    }
+      html += '</ul>';
+      return html;
+    },
+  },
+  sampleDendogram: {
+    height: 200,
+  },
+  geneDendogram: {
+    height: 200,
+  },
+  heatmap: {
+    cell: {
+      height: 30
+    },
   }
 };
 
