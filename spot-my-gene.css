@@ -1,28 +1,30 @@
-.spot-my-gene {
-  text {
-   cursor: default;
-  }
-  .cell.active {
-    opacity: 0.5;
-  }
-  .cell {
-    stroke: #E6E6E6;
-    stroke-width: 1px;
-  }
-  .rows-labels .active {
-    font-weight: bold;
-    fill: #F44336;
-  }
-  .columns-labels .active {
-    font-weight: bold;
-    fill: #F44336;
-  }
+.spot-my-gene text {
+  cursor: default;
 }
-
+.spot-my-gene .cell.active {
+  opacity: 0.5;
+}
+.spot-my-gene .cell {
+  stroke: #E6E6E6;
+  stroke-width: 1px;
+}
+.spot-my-gene .rows-labels .active {
+  font-weight: bold;
+  fill: #F44336;
+}
+.spot-my-gene .columns-labels .active {
+  font-weight: bold;
+  fill: #F44336;
+}
+.spot-my-gene .link {
+  fill: none;
+  stroke: grey;
+  stroke-width: 2px;
+}
 @-webkit-keyframes appear {
   from {
     opacity: 0;
-    -webkit-transform: scale(.3);
+    -webkit-transform: scale(0.3);
   }
   to {
     opacity: 1;
@@ -32,19 +34,17 @@
 @keyframes appear {
   from {
     opacity: 0;
-    -webkit-transform: scale(.3);
+    -webkit-transform: scale(0.3);
   }
   to {
     opacity: 1;
     -webkit-transform: scale(1);
   }
 }
-
 .d3-tip.appear {
   animation: appear 0.2s ease-out;
   -webkit-animation: appear 0.2s ease-out;
 }
-
 .d3-tip {
   line-height: 1;
   font-weight: bold;
