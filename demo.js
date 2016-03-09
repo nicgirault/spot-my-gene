@@ -1,10 +1,12 @@
+var params;
+
 params = {
   container: '#chart',
   width: 800,
   maxHeight: 2000,
   margins: {
     left: 10,
-    top: 10,
+    top: 10
   },
   sampleLabels: {
     length: 30,
@@ -19,7 +21,7 @@ params = {
       }
       html += '</ul>';
       return html;
-    },
+    }
   },
   geneLabels: {
     length: 30,
@@ -34,40 +36,65 @@ params = {
       }
       html += '</ul>';
       return html;
-    },
+    }
   },
   sampleDendogram: {
-    height: 400,
+    height: 400
   },
   geneDendogram: {
-    height: 200,
+    height: 200
   },
   heatmap: {
     cell: {
       height: 30
-    },
+    }
   }
 };
-d3.json('raw-data.json', function(data){
-  formatedData = {};
-  formatedData.columns = [];
-  for (id in data.st.samplesorder) {
-    formatedData.columns.push({
-      name: id,
-      summary: {
-        test: 'value'
+
+d3.json('raw-data.json', function(data) {
+  var formatedData, genes, key, row, samples;
+  samples = (function() {
+    var i, len, ref, results;
+    ref = data.st.samplesorder;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      key = ref[i];
+      results.push({
+        id: key,
+        name: key,
+        summary: {
+          test: 'value'
+        }
+      });
+    }
+    return results;
+  })();
+  genes = (function() {
+    var results;
+    results = [];
+    for (key in data.ct) {
+      results.push({
+        id: key,
+        metadata: {
+          yolo: 'value'
+        }
+      });
+    }
+    return results;
+  })();
+  formatedData = {
+    samples: samples,
+    genes: genes,
+    matrix: (function() {
+      var ref, results;
+      ref = data.ct;
+      results = [];
+      for (key in ref) {
+        row = ref[key];
+        results.push(row.count);
       }
-    });
-  }
-  formatedData.rows = [];
-  for (key in data.ct) {
-    formatedData.rows.push({
-      id: key,
-      values: data.ct[key].count,
-      metadata: {
-        yolo: 'yolo value'
-      }
-    })
-  }
-  d3.SpotMyGene(formatedData, params);
+      return results;
+    })()
+  };
+  return d3.SpotMyGene(formatedData, params);
 });
