@@ -7,6 +7,7 @@ less = require 'gulp-less'
 webserver = require 'gulp-webserver'
 runSequence = require 'run-sequence'
 copy = require 'gulp-copy'
+deploy = require 'gulp-gh-pages'
 
 gulp.task 'compile', ->
   gulp.src [
@@ -54,3 +55,10 @@ gulp.task 'webserver', ->
       fallback: 'demo/index.html'
       host: '127.0.0.1'
       port: 8008
+
+gulp.task 'deploy', (done) ->
+  gulp.src ['demo/**/*', 'dist/**/*']
+  .pipe deploy
+      message: 'Update ' + new Date().toISOString() + ' --skip-ci'
+    .on 'end', done
+  return
