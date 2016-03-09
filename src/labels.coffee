@@ -20,7 +20,7 @@ d3.SpotMyGene.renderSampleLabels = (parentElement, samples, sampleMap, params) -
 
   parentElement
 
-d3.SpotMyGene.renderGeneLabels = (parentElement, genes, params) ->
+d3.SpotMyGene.renderGeneLabels = (parentElement, genes, geneMap, params) ->
   container = parentElement.select '.gene-labels'
 
   label = container.selectAll('.label')
@@ -31,7 +31,7 @@ d3.SpotMyGene.renderGeneLabels = (parentElement, genes, params) ->
     .text (d) -> d.id
     .attr('x', 0)
     .attr 'y', (d, i) ->
-      i * params.heatmap.cell.height
+      geneMap.get(i) * params.heatmap.cell.height
     .style('text-anchor', 'end')
     .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
     .on 'mouseover', (d, i, j) ->

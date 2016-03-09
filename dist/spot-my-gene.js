@@ -94,13 +94,13 @@ d3.SpotMyGene.renderSampleLabels = function(parentElement, samples, sampleMap, p
   return parentElement;
 };
 
-d3.SpotMyGene.renderGeneLabels = function(parentElement, genes, params) {
+d3.SpotMyGene.renderGeneLabels = function(parentElement, genes, geneMap, params) {
   var container, label;
   container = parentElement.select('.gene-labels');
   label = container.selectAll('.label').data(genes).enter().append('text').attr('class', 'label').text(function(d) {
     return d.id;
   }).attr('x', 0).attr('y', function(d, i) {
-    return i * params.heatmap.cell.height;
+    return geneMap.get(i) * params.heatmap.cell.height;
   }).style('text-anchor', 'end').attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")").on('mouseover', function(d, i, j) {
     return d3.SpotMyGene.dispatch.geneMouseover(d, i, j);
   }).on('mouseout', function(d, i, j) {
@@ -129,11 +129,11 @@ d3.SpotMyGene.euclideanDistance = function(data, rowLabels, colLabels, type) {
       }
     }
   } else if (type === "row") {
-    for (i = o = 0, ref4 = rowLabels.length - 1; 0 <= ref4 ? o <= ref4 : o >= ref4; i = 0 <= ref4 ? ++o : --o) {
+    for (i = o = 0, ref4 = rowLabels.length - 2; 0 <= ref4 ? o <= ref4 : o >= ref4; i = 0 <= ref4 ? ++o : --o) {
       for (j = p = ref5 = i + 1, ref6 = rowLabels.length - 1; ref5 <= ref6 ? p <= ref6 : p >= ref6; j = ref5 <= ref6 ? ++p : --p) {
         val = 0;
         for (k = q = 0, ref7 = colLabels.length - 1; 0 <= ref7 ? q <= ref7 : q >= ref7; k = 0 <= ref7 ? ++q : --q) {
-          val += Math.pow(data.matrix[k][i] - data.matrix[k][j], 2);
+          val += Math.pow(data.matrix[i][k] - data.matrix[j][k], 2);
         }
         val = Math.sqrt(val);
         distances.push({
@@ -244,16 +244,16 @@ d3.SpotMyGene.leaves = function(root) {
   return leaves;
 };
 
-d3.SpotMyGene.buildSampleMap = function(samples, sampleRoot) {
-  var leaf, leafIdx, leaves, map, sample, sampleIdx;
-  leaves = d3.SpotMyGene.leaves(sampleRoot);
+d3.SpotMyGene.buildMap = function(elements, root) {
+  var element, elementIdx, leaf, leafIdx, leaves, map;
+  leaves = d3.SpotMyGene.leaves(root);
   map = d3.map();
-  for (sampleIdx in samples) {
-    sample = samples[sampleIdx];
+  for (elementIdx in elements) {
+    element = elements[elementIdx];
     for (leafIdx in leaves) {
       leaf = leaves[leafIdx];
-      if (leaf.name === sample.id) {
-        map.set(parseInt(sampleIdx), parseInt(leafIdx));
+      if (leaf.name === element.id) {
+        map.set(parseInt(elementIdx), parseInt(leafIdx));
         break;
       }
     }
@@ -262,7 +262,7 @@ d3.SpotMyGene.buildSampleMap = function(samples, sampleRoot) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cell, col, colLabel, colorScale, row, rowLabel, sampleMap, sampleRoot;
+  var cell, col, colLabel, colorScale, geneMap, geneRoot, row, rowLabel, sampleMap, sampleRoot;
   if (!data) {
     return;
   }
@@ -288,8 +288,10 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     return results;
   })();
   sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
-  sampleMap = d3.SpotMyGene.buildSampleMap(data.samples, sampleRoot);
-  svg = d3.SpotMyGene.renderGeneLabels(svg, data.genes, params);
+  sampleMap = d3.SpotMyGene.buildMap(data.samples, sampleRoot);
+  geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "row"), rowLabel);
+  geneMap = d3.SpotMyGene.buildMap(data.genes, geneRoot);
+  svg = d3.SpotMyGene.renderGeneLabels(svg, data.genes, geneMap, params);
   svg = d3.SpotMyGene.renderSampleLabels(svg, data.samples, sampleMap, params);
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   return cell = svg.select('.heatmap').selectAll('g').data(data.matrix).enter().append('g').selectAll('rect').data(function(d) {
@@ -297,7 +299,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   }).enter().append('rect').attr('class', 'cell').attr('x', function(d, i) {
     return sampleMap.get(i) * params.heatmap.cell.width;
   }).attr('y', function(d, i, j) {
-    return j * params.heatmap.cell.height;
+    return geneMap.get(j) * params.heatmap.cell.height;
   }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height).style('margin-right', 2).style('fill', colorScale).on('mouseover', function(d, i, j) {
     return d3.SpotMyGene.dispatch.cellMouseover(this, d, i, j);
   }).on('mouseout', function(d, i, j) {

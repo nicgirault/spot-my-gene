@@ -15,11 +15,11 @@ d3.SpotMyGene.euclideanDistance = (data, rowLabels, colLabels, type) ->
         })
 
   else if type is "row"
-    for i in [0..rowLabels.length-1]
+    for i in [0..rowLabels.length-2]
       for j in [i+1..rowLabels.length-1]
         val = 0
         for k in [0..colLabels.length-1]
-          val += Math.pow(data.matrix[k][i] - data.matrix[k][j], 2)
+          val += Math.pow(data.matrix[i][k] - data.matrix[j][k], 2)
 
         val = Math.sqrt(val)
         distances.push({
@@ -97,14 +97,13 @@ d3.SpotMyGene.leaves = (root) ->
   getName root
   leaves
 
-# sampleMap memorize the samples' order
-d3.SpotMyGene.buildSampleMap = (samples, sampleRoot) ->
-  leaves = d3.SpotMyGene.leaves sampleRoot
+d3.SpotMyGene.buildMap = (elements, root) ->
+  leaves = d3.SpotMyGene.leaves root
 
   map = d3.map()
-  for sampleIdx, sample of samples
+  for elementIdx, element of elements
     for leafIdx, leaf of leaves
-      if leaf.name is sample.id
-        map.set parseInt(sampleIdx), parseInt(leafIdx)
+      if leaf.name is element.id
+        map.set parseInt(elementIdx), parseInt(leafIdx)
         break
   map
