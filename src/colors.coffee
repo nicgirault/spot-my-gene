@@ -6,8 +6,8 @@ d3.SpotMyGene.buildColorScale = (data) ->
     '#A63467', '#9B1A53', '#91003F'
   ]
   values = []
-  for row in data.rows
-    for value in row.values
+  for row in data.matrix
+    for value in row
       values.push value
   d3.scale.quantile()
     .domain d3.extent values

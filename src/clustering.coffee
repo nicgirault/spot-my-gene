@@ -1,13 +1,12 @@
 d3.SpotMyGene.euclideanDistance = (data, rowLabels, colLabels, type) ->
   distances = []
-  dataArray = (row.values for row in data.rows)
 
   if type is "col"
     for i in [0..colLabels.length-2]
       for j in [i+1..colLabels.length-1]
         val = 0
         for k in [0..rowLabels.length-1]
-          val += Math.pow(dataArray[k][i] - dataArray[k][j], 2)
+          val += Math.pow(data.matrix[k][i] - data.matrix[k][j], 2)
         val = Math.sqrt(val)
         distances.push({
           row:colLabels[i],
@@ -20,7 +19,7 @@ d3.SpotMyGene.euclideanDistance = (data, rowLabels, colLabels, type) ->
       for j in [i+1..rowLabels.length-1]
         val = 0
         for k in [0..colLabels.length-1]
-          val += Math.pow(dataArray[k][i] - dataArray[k][j], 2)
+          val += Math.pow(data.matrix[k][i] - data.matrix[k][j], 2)
 
         val = Math.sqrt(val)
         distances.push({
@@ -84,3 +83,28 @@ d3.SpotMyGene.clusteringUPGMA = (distances, labels) ->
       children: children
 
   clusters[0]
+
+d3.SpotMyGene.leaves = (root) ->
+  leaves = []
+
+  getName = (node) ->
+    if node.children?
+      getName node.children[0]
+      getName node.children[1]
+    else
+      leaves.push node
+
+  getName root
+  leaves
+
+# sampleMap memorize the samples' order
+d3.SpotMyGene.buildSampleMap = (samples, sampleRoot) ->
+  leaves = d3.SpotMyGene.leaves sampleRoot
+
+  map = d3.map()
+  for sampleIdx, sample of samples
+    for leafIdx, leaf of leaves
+      if leaf.name is sample.id
+        map.set parseInt(sampleIdx), parseInt(leafIdx)
+        break
+  map

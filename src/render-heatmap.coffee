@@ -2,47 +2,31 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   return unless data
   colorScale = d3.SpotMyGene.buildColorScale(data)
 
-  svg = d3.SpotMyGene.renderRowsLabels svg, data.rows, params
-  svg = d3.SpotMyGene.renderColumnsLabels svg, data.columns, params
+  rowLabel = (row.id for row in data.genes)
+  colLabel = (col.name for col in data.samples)
 
-  tree = [
-    children: [
-      children: [
-        children: [
-          name: 'A'
-        ,
-          name: 'B'
-        ]
-      ,
-        children: [
-          name: 'C'
-        ,
-          name: 'D'
-        ]
-      ]
-    ]
-  ]
-  inlineData = []
-  rowLabel = (row.id for row in data.rows)
-  colLabel = (col.name for col in data.columns)
-  clusterPatients = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
-  console.log clusterPatients
-  # clusterGenes = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "row"), rowLabel);
+  sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
+  sampleMap = d3.SpotMyGene.buildSampleMap(data.samples, sampleRoot)
 
-  d3.SpotMyGene.renderDendogram svg, clusterPatients, params
+  svg = d3.SpotMyGene.renderGeneLabels svg, data.genes, params
+  svg = d3.SpotMyGene.renderSampleLabels svg, data.samples, sampleMap, params
+
+  d3.SpotMyGene.renderDendogram svg, sampleRoot, params
 
   cell = svg.select '.heatmap'
     .selectAll('g')
-    .data data.rows
+    .data data.matrix
     .enter()
     .append 'g'
     .selectAll('rect')
-    .data (d) -> d.values
+    .data (d) -> d
     .enter()
     .append('rect')
     .attr 'class', 'cell'
-    .attr 'x', (d, i) -> i * params.heatmap.cell.width
-    .attr 'y', (d, i, j) -> j * params.heatmap.cell.height
+    .attr 'x', (d, i) ->
+      sampleMap.get(i) * params.heatmap.cell.width
+    .attr 'y', (d, i, j) ->
+      j * params.heatmap.cell.height
     .attr('width', params.heatmap.cell.width)
     .attr('height', params.heatmap.cell.height)
     .style('margin-right', 2)

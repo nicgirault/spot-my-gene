@@ -1,14 +1,14 @@
-d3.SpotMyGene.renderColumnsLabels = (parentElement, columns, params) ->
+d3.SpotMyGene.renderSampleLabels = (parentElement, samples, sampleMap, params) ->
   container = parentElement.select '.sample-labels'
 
   label = container.selectAll('.label')
-    .data(columns)
+    .data(samples)
     .enter()
     .append('text')
     .text (d) -> d.name
     .attr('x', 0)
     .attr 'y', (d, i) ->
-      i * params.heatmap.cell.width
+      sampleMap.get(i) * params.heatmap.cell.width
     .style('text-anchor', 'left')
     .attr('transform', 'translate(' + params.heatmap.cell.width / 2 + ',-6) rotate (-90)')
     .on 'mouseover', (d, i, j) ->
@@ -20,11 +20,11 @@ d3.SpotMyGene.renderColumnsLabels = (parentElement, columns, params) ->
 
   parentElement
 
-d3.SpotMyGene.renderRowsLabels = (parentElement, rows, params) ->
+d3.SpotMyGene.renderGeneLabels = (parentElement, genes, params) ->
   container = parentElement.select '.gene-labels'
 
   label = container.selectAll('.label')
-    .data(rows)
+    .data(genes)
     .enter()
     .append('text')
     .attr 'class', 'label'

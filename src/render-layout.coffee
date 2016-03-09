@@ -2,7 +2,7 @@ d3.SpotMyGene.Core.prototype.render2 = (data, params) ->
   svg = d3.select(params.container)
     .append 'svg'
     .style 'width', params.width
-    .style 'height', params.heatmap.cell.height * data.rows.length + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top
+    .style 'height', params.heatmap.cell.height * data.genes.length + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top
 
   svg.selectAll('*').remove()
 

@@ -6,7 +6,6 @@ mocha = require 'gulp-mocha'
 less = require 'gulp-less'
 webserver = require 'gulp-webserver'
 runSequence = require 'run-sequence'
-copy = require 'gulp-copy'
 deploy = require 'gulp-gh-pages'
 
 gulp.task 'compile', ->
@@ -43,16 +42,17 @@ gulp.task 'vendor', ->
   .on 'error', gutil.log
   .pipe gulp.dest('demo')
 
-gulp.task 'watch', ->
+gulp.task 'watch', ['compile', 'less'], ->
   runSequence 'webserver', ->
     gulp.watch 'src/**/*.coffee', ['compile']
     gulp.watch 'src/**/*.less', ['less']
+    gulp.watch 'src-demo/**/*.coffee', ['demo']
 
 gulp.task 'webserver', ->
-  gulp.src '.'
+  gulp.src ['demo', 'dist']
   .pipe webserver
       livereload: true
-      fallback: 'demo/index.html'
+      fallback: 'index.html'
       host: '127.0.0.1'
       port: 8008
 
@@ -62,3 +62,10 @@ gulp.task 'deploy', (done) ->
       message: 'Update ' + new Date().toISOString() + ' --skip-ci'
     .on 'end', done
   return
+
+gulp.task 'demo', ->
+  gulp.src [
+    'src-demo/**/*.coffee'
+  ]
+  .pipe coffee bare: true
+  .pipe gulp.dest 'demo'
