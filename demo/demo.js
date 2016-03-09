@@ -1,7 +1,7 @@
 params = {
   container: '#chart',
   width: 800,
-  maxHeight: 600,
+  maxHeight: 2000,
   margins: {
     left: 10,
     top: 10,
@@ -37,7 +37,7 @@ params = {
     },
   },
   sampleDendogram: {
-    height: 200,
+    height: 400,
   },
   geneDendogram: {
     height: 200,
@@ -48,48 +48,26 @@ params = {
     },
   }
 };
-
-d3.SpotMyGene({
-  columns: [
-    {
-      name: '1',
+d3.json('demo/raw-data.json', function(data){
+  formatedData = {};
+  formatedData.columns = [];
+  for (id in data.st.samplesorder) {
+    formatedData.columns.push({
+      name: id,
       summary: {
-        name: '1'
-      },
-    },
-    {
-      name: '2',
-      summary: {
-        name: '2'
-      },
-    },
-    {
-      name: '3',
-      summary: {
-        name: '3'
-      },
-    },
-    {
-      name: '4',
-      summary: {
-        name: '4'
-      },
-    },
-  ],
-  rows: [
-    {
-      id: "A",
-      values: [0,1,2,3],
-      metadata: {
-        name: "A"
+        test: 'value'
       }
-    },
-    {
-      id: "B",
-      values: [3,2,1,0],
+    });
+  }
+  formatedData.rows = [];
+  for (key in data.ct) {
+    formatedData.rows.push({
+      id: key,
+      values: data.ct[key].count,
       metadata: {
-        name: "B"
+        yolo: 'yolo value'
       }
-    },
-  ]
-}, params);
+    })
+  }
+  d3.SpotMyGene(formatedData, params);
+});

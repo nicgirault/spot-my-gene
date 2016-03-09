@@ -1,7 +1,7 @@
 d3.SpotMyGene = function(data, params) {
   var instance;
   instance = new d3.SpotMyGene.Core(params);
-  d3.SpotMyGene.validateParams(params, data);
+  d3.SpotMyGene.preRender(params, data);
   return instance.render2(data, params);
 };
 
@@ -10,14 +10,15 @@ d3.SpotMyGene.Core = function(params) {
   return this;
 };
 
-d3.SpotMyGene.validateParams = function(params, data) {
+d3.SpotMyGene.preRender = function(params, data) {
   var heatmapWidth;
   heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height;
   params.heatmap.cell.width = heatmapWidth / data.rows[0].values.length;
   params.sampleDendogram.width = heatmapWidth;
   if (params.maxHeight < params.heatmap.cell.height * data.rows.length) {
-    return params.heatmap.cell.height = params.maxHeight / data.rows.length;
+    params.heatmap.cell.height = params.maxHeight / data.rows.length;
   }
+  return d3.SpotMyGene.varianceScaling(data);
 };
 
 d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout');
@@ -63,9 +64,19 @@ d3.SpotMyGene.dispatch.on('cellMouseout', function(cell, d, i, j) {
 });
 
 d3.SpotMyGene.buildColorScale = function(data) {
-  var colors;
+  var colors, l, len, len1, m, ref, ref1, row, value, values;
   colors = ['#005824', '#1A693B', '#347B53', '#4F8D6B', '#699F83', '#83B09B', '#9EC2B3', '#B8D4CB', '#D2E6E3', '#EDF8FB', '#FFFFFF', '#F1EEF6', '#E6D3E1', '#DBB9CD', '#D19EB9', '#C684A4', '#BB6990', '#B14F7C', '#A63467', '#9B1A53', '#91003F'];
-  return d3.scale.quantile().domain([0, 3]).range(colors);
+  values = [];
+  ref = data.rows;
+  for (l = 0, len = ref.length; l < len; l++) {
+    row = ref[l];
+    ref1 = row.values;
+    for (m = 0, len1 = ref1.length; m < len1; m++) {
+      value = ref1[m];
+      values.push(value);
+    }
+  }
+  return d3.scale.quantile().domain(d3.extent(values)).range(colors);
 };
 
 d3.SpotMyGene.renderColumnsLabels = function(parentElement, columns, params) {
@@ -100,12 +111,141 @@ d3.SpotMyGene.renderRowsLabels = function(parentElement, rows, params) {
   return parentElement;
 };
 
+d3.SpotMyGene.euclideanDistance = function(data, rowLabels, colLabels, type) {
+  var dataArray, distances, i, j, k, l, m, n, o, p, q, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, row, val;
+  distances = [];
+  dataArray = (function() {
+    var l, len, ref, results;
+    ref = data.rows;
+    results = [];
+    for (l = 0, len = ref.length; l < len; l++) {
+      row = ref[l];
+      results.push(row.values);
+    }
+    return results;
+  })();
+  if (type === "col") {
+    for (i = l = 0, ref = colLabels.length - 2; 0 <= ref ? l <= ref : l >= ref; i = 0 <= ref ? ++l : --l) {
+      for (j = m = ref1 = i + 1, ref2 = colLabels.length - 1; ref1 <= ref2 ? m <= ref2 : m >= ref2; j = ref1 <= ref2 ? ++m : --m) {
+        val = 0;
+        for (k = n = 0, ref3 = rowLabels.length - 1; 0 <= ref3 ? n <= ref3 : n >= ref3; k = 0 <= ref3 ? ++n : --n) {
+          val += Math.pow(dataArray[k][i] - dataArray[k][j], 2);
+        }
+        val = Math.sqrt(val);
+        distances.push({
+          row: colLabels[i],
+          col: colLabels[j],
+          value: +val
+        });
+      }
+    }
+  } else if (type === "row") {
+    for (i = o = 0, ref4 = rowLabels.length - 1; 0 <= ref4 ? o <= ref4 : o >= ref4; i = 0 <= ref4 ? ++o : --o) {
+      for (j = p = ref5 = i + 1, ref6 = rowLabels.length - 1; ref5 <= ref6 ? p <= ref6 : p >= ref6; j = ref5 <= ref6 ? ++p : --p) {
+        val = 0;
+        for (k = q = 0, ref7 = colLabels.length - 1; 0 <= ref7 ? q <= ref7 : q >= ref7; k = 0 <= ref7 ? ++q : --q) {
+          val += Math.pow(dataArray[k][i] - dataArray[k][j], 2);
+        }
+        val = Math.sqrt(val);
+        distances.push({
+          row: rowLabels[i],
+          col: rowLabels[j],
+          value: +val
+        });
+      }
+    }
+  }
+  return distances;
+};
+
+d3.SpotMyGene.clusteringUPGMA = function(distances, labels) {
+  var children, clusters, distance, i, index, label, mergeDistances, minMatrix, ref;
+  minMatrix = function(matrix) {
+    var elt, i, min;
+    min = d3.min(matrix, function(elt) {
+      return elt.value;
+    });
+    for (i in matrix) {
+      elt = matrix[i];
+      if (elt.value === min) {
+        return [i, elt];
+      }
+    }
+  };
+  mergeDistances = function(a, b, distances) {
+    var buffer, d, i, mergedDistances, ref, ref1, ref2, ref3;
+    mergedDistances = [];
+    buffer = {};
+    for (i in distances) {
+      d = distances[i];
+      if (((ref = d.row) !== a && ref !== b) && ((ref1 = d.col) !== a && ref1 !== b)) {
+        mergedDistances.push(d);
+        continue;
+      }
+      if ((ref2 = d.row) !== a && ref2 !== b) {
+        if (buffer[d.row] != null) {
+          mergedDistances.push({
+            row: d.row,
+            col: a + ',' + b,
+            value: (buffer[d.row] + d.value) / 2
+          });
+        } else {
+          buffer[d.row] = d.value;
+        }
+        continue;
+      }
+      if ((ref3 = d.col) !== a && ref3 !== b) {
+        if (buffer[d.col] != null) {
+          mergedDistances.push({
+            row: a + ',' + b,
+            col: d.col,
+            value: (buffer[d.col] + d.value) / 2
+          });
+        } else {
+          buffer[d.col] = d.value;
+        }
+        continue;
+      }
+    }
+    return mergedDistances;
+  };
+  clusters = (function() {
+    var results;
+    results = [];
+    for (index in labels) {
+      label = labels[index];
+      results.push({
+        name: label
+      });
+    }
+    return results;
+  })();
+  while (distances.length > 0) {
+    ref = minMatrix(distances), i = ref[0], distance = ref[1];
+    distances.splice(i, 1);
+    distances = mergeDistances(distance.row, distance.col, distances);
+    children = clusters.filter(function(cluster) {
+      var ref1;
+      return (ref1 = cluster.name) === distance.row || ref1 === distance.col;
+    });
+    clusters = clusters.filter(function(cluster) {
+      var ref1;
+      return (ref1 = cluster.name) !== distance.row && ref1 !== distance.col;
+    });
+    clusters.push({
+      name: distance.row + ',' + distance.col,
+      children: children
+    });
+  }
+  return clusters[0];
+};
+
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cell, colorScale, tree;
+  var cell, clusterPatients, col, colLabel, colorScale, inlineData, row, rowLabel, tree;
   if (!data) {
     return;
   }
-  colorScale = d3.SpotMyGene.buildColorScale();
+  colorScale = d3.SpotMyGene.buildColorScale(data);
   svg = d3.SpotMyGene.renderRowsLabels(svg, data.rows, params);
   svg = d3.SpotMyGene.renderColumnsLabels(svg, data.columns, params);
   tree = [
@@ -135,7 +275,30 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
       ]
     }
   ];
-  d3.SpotMyGene.renderDendogram(svg, tree, params);
+  inlineData = [];
+  rowLabel = (function() {
+    var l, len, ref, results;
+    ref = data.rows;
+    results = [];
+    for (l = 0, len = ref.length; l < len; l++) {
+      row = ref[l];
+      results.push(row.id);
+    }
+    return results;
+  })();
+  colLabel = (function() {
+    var l, len, ref, results;
+    ref = data.columns;
+    results = [];
+    for (l = 0, len = ref.length; l < len; l++) {
+      col = ref[l];
+      results.push(col.name);
+    }
+    return results;
+  })();
+  clusterPatients = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
+  console.log(clusterPatients);
+  d3.SpotMyGene.renderDendogram(svg, clusterPatients, params);
   return cell = svg.select('.heatmap').selectAll('g').data(data.rows).enter().append('g').selectAll('rect').data(function(d) {
     return d.values;
   }).enter().append('rect').attr('class', 'cell').attr('x', function(d, i) {
@@ -188,7 +351,7 @@ d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
     ];
     return line(points);
   };
-  nodes = cluster.nodes(tree[0]);
+  nodes = cluster.nodes(tree);
   links = cluster.links(nodes);
   leaves = nodes.filter(function(node) {
     return node.name != null;
@@ -202,14 +365,14 @@ d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
   cellWidth = width / leavesNumber;
   index = 0;
   setNodeSize = function(node) {
-    var child, k, len, ref;
+    var child, l, len, ref;
     if (node.name != null) {
       node.x = cellWidth * index + cellWidth / 2;
       return index++;
     } else {
       ref = node.children;
-      for (k = 0, len = ref.length; k < len; k++) {
-        child = ref[k];
+      for (l = 0, len = ref.length; l < len; l++) {
+        child = ref[l];
         setNodeSize(child);
       }
       if (node.children.length === 1) {
@@ -220,4 +383,26 @@ d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
     }
   };
   return setNodeSize(root);
+};
+
+d3.SpotMyGene.varianceScaling = function(data) {
+  var deviation, l, len, mean, ref, results, row, x;
+  ref = data.rows;
+  results = [];
+  for (l = 0, len = ref.length; l < len; l++) {
+    row = ref[l];
+    mean = d3.mean(row.values);
+    deviation = d3.deviation(row.values);
+    results.push(row.values = (function() {
+      var len1, m, ref1, results1;
+      ref1 = row.values;
+      results1 = [];
+      for (m = 0, len1 = ref1.length; m < len1; m++) {
+        x = ref1[m];
+        results1.push((x - mean) / deviation);
+      }
+      return results1;
+    })());
+  }
+  return results;
 };

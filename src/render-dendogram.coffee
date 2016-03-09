@@ -17,7 +17,7 @@ d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
     ]
     line points
 
-  nodes = cluster.nodes tree[0]
+  nodes = cluster.nodes tree
   links = cluster.links nodes
   leaves = nodes.filter (node) -> node.name?
 

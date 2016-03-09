@@ -1,6 +1,6 @@
 d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   return unless data
-  colorScale = d3.SpotMyGene.buildColorScale()
+  colorScale = d3.SpotMyGene.buildColorScale(data)
 
   svg = d3.SpotMyGene.renderRowsLabels svg, data.rows, params
   svg = d3.SpotMyGene.renderColumnsLabels svg, data.columns, params
@@ -22,7 +22,14 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
       ]
     ]
   ]
-  d3.SpotMyGene.renderDendogram svg, tree, params
+  inlineData = []
+  rowLabel = (row.id for row in data.rows)
+  colLabel = (col.name for col in data.columns)
+  clusterPatients = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
+  console.log clusterPatients
+  # clusterGenes = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "row"), rowLabel);
+
+  d3.SpotMyGene.renderDendogram svg, clusterPatients, params
 
   cell = svg.select '.heatmap'
     .selectAll('g')
@@ -44,5 +51,3 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
       d3.SpotMyGene.dispatch.cellMouseover @, d, i, j
     .on 'mouseout', (d, i, j) ->
       d3.SpotMyGene.dispatch.cellMouseout @, d, i, j
-
-  # hightlightOnMouseover cell, params
