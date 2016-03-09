@@ -48,7 +48,7 @@ params = {
     },
   }
 };
-d3.json('demo/raw-data.json', function(data){
+d3.json('raw-data.json', function(data){
   formatedData = {};
   formatedData.columns = [];
   for (id in data.st.samplesorder) {
