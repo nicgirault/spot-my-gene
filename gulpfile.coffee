@@ -37,12 +37,13 @@ gulp.task 'vendor', ->
   gulp.src [
     'bower_components/d3/d3.min.js'
     'bower_components/d3-tip/index.js'
+    'bower_components/async/lib/async.js'
   ]
   .pipe(concat('vendor.js'))
   .on 'error', gutil.log
   .pipe gulp.dest('demo')
 
-gulp.task 'watch', ['compile', 'less'], ->
+gulp.task 'watch', ['compile', 'less', 'vendor'], ->
   runSequence 'webserver', ->
     gulp.watch 'src/**/*.coffee', ['compile']
     gulp.watch 'src/**/*.less', ['less']

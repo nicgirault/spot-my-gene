@@ -252,7 +252,7 @@ d3.SpotMyGene.buildMap = function(elements, root) {
     element = elements[elementIdx];
     for (leafIdx in leaves) {
       leaf = leaves[leafIdx];
-      if (leaf.name === element.id) {
+      if (leaf.name === element.name) {
         map.set(parseInt(elementIdx), parseInt(leafIdx));
         break;
       }

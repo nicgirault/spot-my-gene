@@ -1,0 +1,27 @@
+{"uuid":"c41895cc-2b9c-4d04-806c-568196f0bff2",
+"name":"sample7",
+"launch":"done",
+"entity":"cortect",
+"state":"ok",
+"user":"beaumesac",
+"visibility":"public",
+"date":"26 Feb 16 10:36:00",
+"fkey":"a2fcb83c82c749c6aae37c7fa8d44cd7",
+"summary":{
+    "pt":"no-disease",
+    "cl":"inv1822",
+    "ag":"4",
+    "sx":"F",
+    "ti":"all",
+    "ot":"crushed_population"
+},
+"treatment":{
+    "se":  "I",
+    "sp":  "true",
+    "st":  "pe",
+    "ro":  "rf",
+    "eg": "human",
+    "te":  "RNA-seq",
+    "fq": ["work7v2_1.fastq.gz","work7v2_2.fastq.gz"]
+}
+}

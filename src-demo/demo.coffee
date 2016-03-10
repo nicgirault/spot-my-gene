@@ -6,7 +6,7 @@ params =
     left: 10
     top: 10
   sampleLabels:
-    length: 30
+    length: 65
     showTooltips: true
     tooltipContent: (d) ->
       html = '<ul>'
@@ -32,12 +32,16 @@ params =
       height: 30
 
 d3.json 'raw-data.json', (data) ->
-  samples = ({id: key, name: key, summary: {test: 'value'}} for key in data.st.samplesorder)
-  genes = ({id: key, metadata: {yolo: 'value'}} for key of data.ct)
+  async.map data.st.samplesorder, (sampleId, done) ->
+    d3.json "samples/#{sampleId}.json", done
+  , (err, samples) ->
+    for sample in samples
+      sample.id = sample.uuid
+    genes = ({id: key, name: key, metadata: {yolo: 'value'}} for key of data.ct)
 
-  formatedData =
-    samples: samples
-    genes: genes
-    matrix: (row.count for key, row of data.ct)
+    formatedData =
+      samples: samples
+      genes: genes
+      matrix: (row.count for key, row of data.ct)
 
-  d3.SpotMyGene(formatedData, params)
+    d3.SpotMyGene(formatedData, params)

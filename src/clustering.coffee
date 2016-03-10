@@ -103,7 +103,7 @@ d3.SpotMyGene.buildMap = (elements, root) ->
   map = d3.map()
   for elementIdx, element of elements
     for leafIdx, leaf of leaves
-      if leaf.name is element.id
+      if leaf.name is element.name
         map.set parseInt(elementIdx), parseInt(leafIdx)
         break
   map

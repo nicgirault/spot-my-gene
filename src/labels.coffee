@@ -1,6 +1,5 @@
 d3.SpotMyGene.renderSampleLabels = (parentElement, samples, sampleMap, params) ->
   container = parentElement.select '.sample-labels'
-
   label = container.selectAll('.label')
     .data(samples)
     .enter()
@@ -15,7 +14,6 @@ d3.SpotMyGene.renderSampleLabels = (parentElement, samples, sampleMap, params) -
       d3.SpotMyGene.dispatch.sampleMouseover d, i, j
     .on 'mouseout', (d, i, j) ->
       d3.SpotMyGene.dispatch.sampleMouseout d, i, j
-
   d3.SpotMyGene.listenSampleMouseover(label, params)
 
   parentElement
