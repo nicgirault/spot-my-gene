@@ -9,7 +9,7 @@ params = {
     top: 10
   },
   sampleLabels: {
-    length: 30,
+    length: 65,
     showTooltips: true,
     tooltipContent: function(d) {
       var html, key, ref, value;
@@ -52,49 +52,47 @@ params = {
 };
 
 d3.json('raw-data.json', function(data) {
-  var formatedData, genes, key, row, samples;
-  samples = (function() {
-    var i, len, ref, results;
-    ref = data.st.samplesorder;
-    results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      key = ref[i];
-      results.push({
-        id: key,
-        name: key,
-        summary: {
-          test: 'value'
-        }
-      });
+  return async.map(data.st.samplesorder, function(sampleId, done) {
+    return d3.json("samples/" + sampleId + ".json", done);
+  }, function(err, samples) {
+    var cells, formatedData, geneId, genes, i, key, len, ref, ref1, row, sample, sampleIdx, value;
+    for (i = 0, len = samples.length; i < len; i++) {
+      sample = samples[i];
+      sample.id = sample.name;
     }
-    return results;
-  })();
-  genes = (function() {
-    var results;
-    results = [];
-    for (key in data.ct) {
-      results.push({
-        id: key,
-        metadata: {
-          yolo: 'value'
-        }
-      });
-    }
-    return results;
-  })();
-  formatedData = {
-    samples: samples,
-    genes: genes,
-    matrix: (function() {
-      var ref, results;
-      ref = data.ct;
+    genes = (function() {
+      var results;
       results = [];
-      for (key in ref) {
-        row = ref[key];
-        results.push(row.count);
+      for (key in data.ct) {
+        results.push({
+          id: key,
+          name: key,
+          metadata: {
+            yolo: 'value'
+          }
+        });
       }
       return results;
-    })()
-  };
-  return d3.SpotMyGene(formatedData, params);
+    })();
+    cells = [];
+    ref = data.ct;
+    for (geneId in ref) {
+      row = ref[geneId];
+      ref1 = row.count;
+      for (sampleIdx in ref1) {
+        value = ref1[sampleIdx];
+        cells.push({
+          geneId: geneId,
+          sampleId: samples[sampleIdx].id,
+          value: value
+        });
+      }
+    }
+    formatedData = {
+      samples: samples,
+      genes: genes,
+      cells: cells
+    };
+    return d3.SpotMyGene(formatedData, params);
+  });
 });
