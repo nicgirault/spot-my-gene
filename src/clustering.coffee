@@ -1,12 +1,26 @@
 d3.SpotMyGene.euclideanDistance = (data, rowLabels, colLabels, type) ->
   distances = []
 
+  matrix = buildMatrix = (data) ->
+    samplesIdx = {}
+    genesIdx = {}
+    for idx, sample of data.samples
+      samplesIdx[sample.id] = idx
+    for idx, gene of data.genes
+      genesIdx[gene.id] = idx
+
+    matrix = ([0] for row in data.genes)
+    for cell in data.cells
+      matrix[genesIdx[cell.geneId]][samplesIdx[cell.sampleId]] = cell.value
+
+  buildMatrix(data)
+
   if type is "col"
     for i in [0..colLabels.length-2]
       for j in [i+1..colLabels.length-1]
         val = 0
         for k in [0..rowLabels.length-1]
-          val += Math.pow(data.matrix[k][i] - data.matrix[k][j], 2)
+          val += Math.pow(matrix[k][i] - matrix[k][j], 2)
         val = Math.sqrt(val)
         distances.push({
           row:colLabels[i],
@@ -19,7 +33,7 @@ d3.SpotMyGene.euclideanDistance = (data, rowLabels, colLabels, type) ->
       for j in [i+1..rowLabels.length-1]
         val = 0
         for k in [0..colLabels.length-1]
-          val += Math.pow(data.matrix[i][k] - data.matrix[j][k], 2)
+          val += Math.pow(matrix[i][k] - matrix[j][k], 2)
 
         val = Math.sqrt(val)
         distances.push({
@@ -97,13 +111,14 @@ d3.SpotMyGene.leaves = (root) ->
   getName root
   leaves
 
-d3.SpotMyGene.buildMap = (elements, root) ->
+# TODO: remove this hand made map and use ordinal scale instead
+d3.SpotMyGene.getRange = (elements, root) ->
   leaves = d3.SpotMyGene.leaves root
 
-  map = d3.map()
+  range = []
   for elementIdx, element of elements
     for leafIdx, leaf of leaves
       if leaf.name is element.name
-        map.set parseInt(elementIdx), parseInt(leafIdx)
+        range.push parseInt(leafIdx)
         break
-  map
+  range

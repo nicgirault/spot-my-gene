@@ -15,7 +15,7 @@ d3.SpotMyGene.preRender = (params, data) ->
   if params.maxHeight < params.heatmap.cell.height * data.genes.length
     params.heatmap.cell.height = params.maxHeight / data.genes.length
 
-  d3.SpotMyGene.varianceScaling data
+  d3.SpotMyGene.varianceScaling data.cells
 
 d3.SpotMyGene.dispatch = d3.dispatch(
   'geneMouseover'

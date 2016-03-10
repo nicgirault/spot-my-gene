@@ -36,12 +36,20 @@ d3.json 'raw-data.json', (data) ->
     d3.json "samples/#{sampleId}.json", done
   , (err, samples) ->
     for sample in samples
-      sample.id = sample.uuid
+      sample.id = sample.name
     genes = ({id: key, name: key, metadata: {yolo: 'value'}} for key of data.ct)
+
+    cells = []
+    for geneId, row of data.ct
+      for sampleIdx, value of row.count
+        cells.push
+          geneId: geneId
+          sampleId: samples[sampleIdx].id
+          value: value
 
     formatedData =
       samples: samples
       genes: genes
-      matrix: (row.count for key, row of data.ct)
+      cells: cells
 
     d3.SpotMyGene(formatedData, params)

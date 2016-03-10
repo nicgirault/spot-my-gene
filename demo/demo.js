@@ -55,10 +55,10 @@ d3.json('raw-data.json', function(data) {
   return async.map(data.st.samplesorder, function(sampleId, done) {
     return d3.json("samples/" + sampleId + ".json", done);
   }, function(err, samples) {
-    var formatedData, genes, i, key, len, row, sample;
+    var cells, formatedData, geneId, genes, i, key, len, ref, ref1, row, sample, sampleIdx, value;
     for (i = 0, len = samples.length; i < len; i++) {
       sample = samples[i];
-      sample.id = sample.uuid;
+      sample.id = sample.name;
     }
     genes = (function() {
       var results;
@@ -74,19 +74,24 @@ d3.json('raw-data.json', function(data) {
       }
       return results;
     })();
+    cells = [];
+    ref = data.ct;
+    for (geneId in ref) {
+      row = ref[geneId];
+      ref1 = row.count;
+      for (sampleIdx in ref1) {
+        value = ref1[sampleIdx];
+        cells.push({
+          geneId: geneId,
+          sampleId: samples[sampleIdx].id,
+          value: value
+        });
+      }
+    }
     formatedData = {
       samples: samples,
       genes: genes,
-      matrix: (function() {
-        var ref, results;
-        ref = data.ct;
-        results = [];
-        for (key in ref) {
-          row = ref[key];
-          results.push(row.count);
-        }
-        return results;
-      })()
+      cells: cells
     };
     return d3.SpotMyGene(formatedData, params);
   });

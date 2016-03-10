@@ -1,42 +1,39 @@
-d3.SpotMyGene.renderSampleLabels = (parentElement, samples, sampleMap, params) ->
-  container = parentElement.select '.sample-labels'
-  label = container.selectAll('.label')
-    .data(samples)
-    .enter()
-    .append('text')
-    .text (d) -> d.name
-    .attr('x', 0)
-    .attr 'y', (d, i) ->
-      sampleMap.get(i) * params.heatmap.cell.width
-    .style('text-anchor', 'left')
-    .attr('transform', 'translate(' + params.heatmap.cell.width / 2 + ',-6) rotate (-90)')
+d3.SpotMyGene.renderSampleLabels = (parentElement, scale, params, data) ->
+  axis = d3.svg.axis()
+    .scale(scale)
+    .orient('top')
+
+  label = parentElement.select '.heatmap'
+    .append('g')
+    .attr('class', 'x axis')
+    .call(axis)
+    .selectAll('text')
+    .attr('transform', "translate(#{params.heatmap.cell.width/3}, 0) rotate(-45)")
+    .style('text-anchor', 'start')
     .on 'mouseover', (d, i, j) ->
       d3.SpotMyGene.dispatch.sampleMouseover d, i, j
     .on 'mouseout', (d, i, j) ->
       d3.SpotMyGene.dispatch.sampleMouseout d, i, j
-  d3.SpotMyGene.listenSampleMouseover(label, params)
 
+  d3.SpotMyGene.listenSampleMouseover(label, params, data)
   parentElement
 
-d3.SpotMyGene.renderGeneLabels = (parentElement, genes, geneMap, params) ->
-  container = parentElement.select '.gene-labels'
+d3.SpotMyGene.renderGeneLabels = (parentElement, scale, params, data) ->
+  geneAxis = d3.svg.axis()
+    .scale(scale)
+    .orient('left')
 
-  label = container.selectAll('.label')
-    .data(genes)
-    .enter()
-    .append('text')
-    .attr 'class', 'label'
-    .text (d) -> d.id
-    .attr('x', 0)
-    .attr 'y', (d, i) ->
-      geneMap.get(i) * params.heatmap.cell.height
-    .style('text-anchor', 'end')
+  label = parentElement.select '.heatmap'
+    .append('g')
+    .attr('class', 'y axis')
+    .call(geneAxis)
+    .selectAll('text')
     .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
+    .style('text-anchor', 'end')
     .on 'mouseover', (d, i, j) ->
       d3.SpotMyGene.dispatch.geneMouseover d, i, j
     .on 'mouseout', (d, i, j) ->
       d3.SpotMyGene.dispatch.geneMouseout d, i, j
 
-  d3.SpotMyGene.listenGeneMouseover(label, params)
-
+  d3.SpotMyGene.listenGeneMouseover(label, params, data)
   parentElement

@@ -1,40 +1,54 @@
 d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   return unless data
-  colorScale = d3.SpotMyGene.buildColorScale(data)
+  colorScale = d3.SpotMyGene.buildColorScale(data.cells)
 
-  rowLabel = (row.id for row in data.genes)
-  colLabel = (col.name for col in data.samples)
+  geneIds = (gene.id for gene in data.genes)
+  sampleIds = (sample.id for sample in data.samples)
 
-  sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "col"), colLabel);
-  sampleMap = d3.SpotMyGene.buildMap(data.samples, sampleRoot)
+  sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "col"), sampleIds)
+  samplesOrder = d3.SpotMyGene.getRange(data.samples, sampleRoot)
 
-  geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, rowLabel, colLabel, "row"), rowLabel);
-  geneMap = d3.SpotMyGene.buildMap(data.genes, geneRoot)
+  geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds)
+  genesOrder = d3.SpotMyGene.getRange(data.genes, geneRoot)
 
-  svg = d3.SpotMyGene.renderGeneLabels svg, data.genes, geneMap, params
-  svg = d3.SpotMyGene.renderSampleLabels svg, data.samples, sampleMap, params
+  sampleScale = d3.scale.ordinal()
+    .domain(sampleIds)
+    .range (idx * params.heatmap.cell.width for idx in samplesOrder)
+
+  d3.SpotMyGene.renderSampleLabels(svg, sampleScale, params, data)
+
+  geneScale = d3.scale.ordinal()
+    .domain(geneIds)
+    .range (idx * params.heatmap.cell.height for idx in genesOrder)
+
+  d3.SpotMyGene.renderGeneLabels(svg, geneScale, params, data)
+
+  # draw = ->
+  #   svg.select("g.y.axis").call(yAxis)
+
+  # zoom = d3.behavior.zoom()
+  #   .on "zoom", draw
+  #   .scaleExtent([1, 32])
+  #   .x sampleScale
+  #   .y geneScale
 
   d3.SpotMyGene.renderDendogram svg, sampleRoot, params
-
   cell = svg.select '.heatmap'
-    .selectAll('g')
-    .data data.matrix
-    .enter()
-    .append 'g'
     .selectAll('rect')
-    .data (d) -> d
+    .data data.cells
     .enter()
     .append('rect')
     .attr 'class', 'cell'
-    .attr 'x', (d, i) ->
-      sampleMap.get(i) * params.heatmap.cell.width
-    .attr 'y', (d, i, j) ->
-      geneMap.get(j) * params.heatmap.cell.height
+    .attr 'x', (d) ->
+      sampleScale(d.sampleId)
+    .attr 'y', (d) ->
+      geneScale(d.geneId)
     .attr('width', params.heatmap.cell.width)
     .attr('height', params.heatmap.cell.height)
-    .style('margin-right', 2)
-    .style 'fill', colorScale
-    .on 'mouseover', (d, i, j) ->
-      d3.SpotMyGene.dispatch.cellMouseover @, d, i, j
-    .on 'mouseout', (d, i, j) ->
-      d3.SpotMyGene.dispatch.cellMouseout @, d, i, j
+    # .call(zoom)
+    .style 'fill', (d) ->
+      colorScale d.value
+    .on 'mouseover', (d) ->
+      d3.SpotMyGene.dispatch.cellMouseover @, d
+    .on 'mouseout', (d) ->
+      d3.SpotMyGene.dispatch.cellMouseout @, d

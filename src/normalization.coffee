@@ -1,5 +1,10 @@
-d3.SpotMyGene.varianceScaling = (data) ->
-  for index, row of data.matrix
-    mean = d3.mean row
-    deviation = d3.deviation row
-    data.matrix[index] = ((x - mean) / deviation for x in row)
+d3.SpotMyGene.varianceScaling = (cells) ->
+  nest = d3.nest()
+    .key (cell) -> cell.geneId
+    .entries(cells)
+
+  for geneCells in nest
+    mean = d3.mean geneCells.values, (cell) -> cell.value
+    deviation = d3.deviation geneCells.values, (cell) -> cell.value
+    for cell in geneCells.values
+      cell.value = (cell.value - mean) / deviation
