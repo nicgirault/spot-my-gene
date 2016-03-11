@@ -93,17 +93,7 @@ d3.SpotMyGene.renderSampleLabels = function(parentElement, scale, params, data) 
   return parentElement;
 };
 
-d3.SpotMyGene.renderGeneLabels = function(parentElement, scale, params, data) {
-  var geneAxis, label;
-  geneAxis = d3.svg.axis().scale(scale).orient('left');
-  label = parentElement.select('.heatmap').append('g').attr('class', 'y axis').call(geneAxis).selectAll('text').attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")").style('text-anchor', 'end').on('mouseover', function(d, i, j) {
-    return d3.SpotMyGene.dispatch.geneMouseover(d, i, j);
-  }).on('mouseout', function(d, i, j) {
-    return d3.SpotMyGene.dispatch.geneMouseout(d, i, j);
-  });
-  d3.SpotMyGene.listenGeneMouseover(label, params, data);
-  return parentElement;
-};
+d3.SpotMyGene.renderGeneLabels = function(parentElement, scale, params, data) {};
 
 d3.SpotMyGene.euclideanDistance = function(data, rowLabels, colLabels, type) {
   var buildMatrix, distances, i, j, k, l, m, matrix, n, o, p, q, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, val;
@@ -290,7 +280,7 @@ d3.SpotMyGene.getRange = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cell, colorScale, gene, geneIds, geneRoot, geneScale, genesOrder, idx, sample, sampleIds, sampleRoot, sampleScale, samplesOrder;
+  var cells, colorScale, gene, geneAxis, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, sample, sampleIds, sampleRoot, sampleScale, samplesOrder, updateHeatmap, zoom, zoomLevel;
   if (!data) {
     return;
   }
@@ -338,19 +328,37 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     }
     return results;
   })());
-  d3.SpotMyGene.renderGeneLabels(svg, geneScale, params, data);
+  geneLabels = svg.select('.heatmap').append('g').attr('class', 'y axis').attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")").style('text-anchor', 'end');
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
-  return cell = svg.select('.heatmap').selectAll('rect').data(data.cells).enter().append('rect').attr('class', 'cell').attr('x', function(d) {
+  zoomLevel = 1;
+  zoom = function(event) {
+    if (params.heatmap.cell.height * d3.event.scale < 30) {
+      return updateHeatmap(d3.event.scale);
+    }
+  };
+  cells = svg.select('.heatmap').selectAll('rect').data(data.cells);
+  cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
     return sampleScale(d.sampleId);
-  }).attr('y', function(d) {
-    return geneScale(d.geneId);
-  }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height).style('fill', function(d) {
+  }).attr('width', params.heatmap.cell.width).style('fill', function(d) {
     return colorScale(d.value);
   }).on('mouseover', function(d) {
     return d3.SpotMyGene.dispatch.cellMouseover(this, d);
   }).on('mouseout', function(d) {
     return d3.SpotMyGene.dispatch.cellMouseout(this, d);
-  });
+  }).call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom));
+  geneAxis = d3.svg.axis().orient('left');
+  updateHeatmap = function(zoomLevel) {
+    var scale;
+    cells.attr('y', function(d) {
+      return geneScale(d.geneId) * zoomLevel;
+    }).attr('height', params.heatmap.cell.height * zoomLevel);
+    scale = geneScale.copy().range(geneScale.range().map(function(i) {
+      return i * zoomLevel;
+    }));
+    geneAxis.scale(scale);
+    return geneLabels.call(geneAxis);
+  };
+  return updateHeatmap(1);
 };
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
