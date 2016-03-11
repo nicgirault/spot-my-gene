@@ -332,11 +332,13 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   zoomLevel = 1;
   zoom = function(event) {
+    console.log(d3.event.translate, svg.select('.heatmap .cells'));
+    svg.select('.heatmap .cells').attr("transform", "translate(0, " + d3.event.translate[1] + ")");
     if (params.heatmap.cell.height * d3.event.scale < 30) {
       return updateHeatmap(d3.event.scale);
     }
   };
-  cells = svg.select('.heatmap').selectAll('rect').data(data.cells);
+  cells = svg.select('.heatmap').append('svg').append('g').attr('class', 'cells').attr('width', params.heatmap.cell.width * data.samples.length).attr('height', params.heatmap.cell.height * data.genes.length).selectAll('rect').data(data.cells);
   cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
     return sampleScale(d.sampleId);
   }).attr('width', params.heatmap.cell.width).style('fill', function(d) {
