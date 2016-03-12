@@ -24,7 +24,7 @@ params = {
     }
   },
   geneLabels: {
-    length: 30,
+    length: 100,
     showTooltips: true,
     tooltipContent: function(d) {
       var html, key, ref, value;

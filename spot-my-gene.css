@@ -29,9 +29,6 @@
 .spot-my-gene .y.axis path {
   display: none;
 }
-.spot-my-gene .heatmap .cells {
-  overflow: hidden;
-}
 @-webkit-keyframes appear {
   from {
     opacity: 0;
