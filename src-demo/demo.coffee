@@ -15,7 +15,7 @@ params =
       html += '</ul>'
       html
   geneLabels:
-    length: 30
+    length: 100
     showTooltips: true
     tooltipContent: (d) ->
       html = '<ul>'
@@ -30,6 +30,7 @@ params =
   heatmap:
     cell:
       height: 30
+  enableZoom: false
 
 d3.json 'raw-data.json', (data) ->
   async.map data.st.samplesorder, (sampleId, done) ->

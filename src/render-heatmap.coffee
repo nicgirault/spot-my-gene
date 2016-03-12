@@ -15,27 +15,32 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .domain(sampleIds)
     .range (idx * params.heatmap.cell.width for idx in samplesOrder)
 
-  d3.SpotMyGene.renderSampleLabels(svg, sampleScale, params, data)
+  sampleLabels = svg.select '.sample-labels'
+    .append('g')
+    .attr('class', 'x axis')
+    # .attr("transform", "translate(0, #{params.heatmap.cell.height / 2})")
 
   geneScale = d3.scale.ordinal()
     .domain(geneIds)
     .range (idx * params.heatmap.cell.height for idx in genesOrder)
 
-  # d3.SpotMyGene.renderGeneLabels(svg, geneScale, params, data)
-
-  geneLabels = svg.select '.heatmap'
+  geneLabels = svg.select '.gene-labels'
     .append('g')
     .attr('class', 'y axis')
-    .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
-    .style('text-anchor', 'end')
+    .attr("transform", "translate(0, #{params.heatmap.cell.height / 2})")
 
   d3.SpotMyGene.renderDendogram svg, sampleRoot, params
-  zoomLevel = 1
-  zoom = (event) ->
-    if params.heatmap.cell.height * d3.event.scale < 30
-      updateHeatmap d3.event.scale
+
+  zoom = d3.behavior.zoom()
+    .scaleExtent([1, 8])
+
+  if params.enableZoom
+    zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom))
 
   cells = svg.select '.heatmap'
+    .append 'g'
+    .attr 'class', 'cells-group'
+    .call zoom
     .selectAll('rect')
     .data data.cells
 
@@ -51,19 +56,23 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
       d3.SpotMyGene.dispatch.cellMouseover @, d
     .on 'mouseout', (d) ->
       d3.SpotMyGene.dispatch.cellMouseout @, d
-    .call d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom)
 
-  geneAxis = d3.svg.axis().orient('left')
+  geneAxis = d3.svg.axis().orient('right')
+  sampleAxis = d3.svg.axis().orient('bottom')
 
-  updateHeatmap = (zoomLevel) ->
+  updateHeatmap = ->
     cells
       .attr 'y', (d) ->
-        geneScale(d.geneId) * zoomLevel
-      .attr('height', params.heatmap.cell.height * zoomLevel)
+        geneScale(d.geneId)
+      .attr('height', params.heatmap.cell.height)
 
-    scale = geneScale.copy().range geneScale.range().map (i) -> i * zoomLevel
-    geneAxis.scale(scale)
-
+    geneAxis.scale(geneScale)
     geneLabels.call(geneAxis)
 
-  updateHeatmap 1
+    sampleAxis.scale(sampleScale)
+    sampleLabels.call(sampleAxis)
+    .selectAll('text')
+    .attr('transform', "translate(#{params.heatmap.cell.width/2}, 0) rotate(-45)")
+    .style("text-anchor", "end")
+
+  updateHeatmap()
