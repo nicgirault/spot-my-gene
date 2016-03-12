@@ -25,17 +25,28 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
 
   geneLabels = svg.select '.heatmap'
     .append('g')
+    # .style 'width', 150
+    # .style 'height', params.heatmap.cell.height * data.genes.length
+    .append 'g'
     .attr('class', 'y axis')
-    .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
-    .style('text-anchor', 'end')
+    # .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
+    # .style('text-anchor', 'end')
 
   d3.SpotMyGene.renderDendogram svg, sampleRoot, params
   zoomLevel = 1
-  zoom = (event) ->
-    if params.heatmap.cell.height * d3.event.scale < 30
-      updateHeatmap d3.event.scale
+
+  zoom = d3.behavior.zoom()
+    .scaleExtent([1, 8])
+
+  zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom))
 
   cells = svg.select '.heatmap'
+    .append 'svg'
+    .attr 'width', params.heatmap.cell.width * data.samples.length
+    .attr 'height', params.heatmap.cell.height * data.genes.length
+    .append 'g'
+    .attr 'class', 'cells-group'
+    .call zoom
     .selectAll('rect')
     .data data.cells
 
@@ -51,7 +62,6 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
       d3.SpotMyGene.dispatch.cellMouseover @, d
     .on 'mouseout', (d) ->
       d3.SpotMyGene.dispatch.cellMouseout @, d
-    .call d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom)
 
   geneAxis = d3.svg.axis().orient('left')
 
@@ -63,7 +73,6 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
 
     scale = geneScale.copy().range geneScale.range().map (i) -> i * zoomLevel
     geneAxis.scale(scale)
-
     geneLabels.call(geneAxis)
 
   updateHeatmap 1

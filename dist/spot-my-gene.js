@@ -15,9 +15,11 @@ d3.SpotMyGene.preRender = function(params, data) {
   heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height;
   params.heatmap.cell.width = heatmapWidth / data.samples.length;
   params.sampleDendogram.width = heatmapWidth;
+  params.heatmap.width = heatmapWidth;
   if (params.maxHeight < params.heatmap.cell.height * data.genes.length) {
     params.heatmap.cell.height = params.maxHeight / data.genes.length;
   }
+  params.heatmap.height = params.heatmap.cell.height * data.genes.length;
   return d3.SpotMyGene.varianceScaling(data.cells);
 };
 
@@ -328,15 +330,12 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     }
     return results;
   })());
-  geneLabels = svg.select('.heatmap').append('g').attr('class', 'y axis').attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")").style('text-anchor', 'end');
+  geneLabels = svg.select('.heatmap').append('g').append('g').attr('class', 'y axis');
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   zoomLevel = 1;
-  zoom = function(event) {
-    if (params.heatmap.cell.height * d3.event.scale < 30) {
-      return updateHeatmap(d3.event.scale);
-    }
-  };
-  cells = svg.select('.heatmap').selectAll('rect').data(data.cells);
+  zoom = d3.behavior.zoom().scaleExtent([1, 8]);
+  zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom));
+  cells = svg.select('.heatmap').append('svg').attr('width', params.heatmap.cell.width * data.samples.length).attr('height', params.heatmap.cell.height * data.genes.length).append('g').attr('class', 'cells-group').call(zoom).selectAll('rect').data(data.cells);
   cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
     return sampleScale(d.sampleId);
   }).attr('width', params.heatmap.cell.width).style('fill', function(d) {
@@ -345,7 +344,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     return d3.SpotMyGene.dispatch.cellMouseover(this, d);
   }).on('mouseout', function(d) {
     return d3.SpotMyGene.dispatch.cellMouseout(this, d);
-  }).call(d3.behavior.zoom().scaleExtent([1, 8]).on("zoom", zoom));
+  });
   geneAxis = d3.svg.axis().orient('left');
   updateHeatmap = function(zoomLevel) {
     var scale;
@@ -460,4 +459,34 @@ d3.SpotMyGene.varianceScaling = function(cells) {
     })());
   }
   return results;
+};
+
+d3.SpotMyGene.zoom = function(params, behavior) {
+  var moveChecker;
+  moveChecker = function(translateX, translateY, scale, width, height) {
+    var maxX, maxY;
+    maxX = (scale - 1) * width;
+    maxY = (scale - 1) * height;
+    if (translateX > 0) {
+      translateX = 0;
+    }
+    if (translateY > 0) {
+      translateY = 0;
+    }
+    if (translateX < -maxX) {
+      translateX = -maxX;
+    }
+    if (translateY < -maxY) {
+      translateY = -maxY;
+    }
+    behavior.translate([translateX, translateY]);
+    return [translateX, translateY];
+  };
+  return function() {
+    var ref, scale, translateX, translateY;
+    scale = d3.event.scale;
+    ref = moveChecker(d3.event.translate[0], d3.event.translate[1], d3.event.scale, params.heatmap.width, params.heatmap.height), translateX = ref[0], translateY = ref[1];
+    d3.select('.cells-group').attr('transform', "translate(" + translateX + ", " + translateY + ") scale(" + scale + ", " + scale + ")");
+    return d3.select('.y.axis').attr('transform', "translate(0, " + translateY + ") scale(" + scale + ")");
+  };
 };
