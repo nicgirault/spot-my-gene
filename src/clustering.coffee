@@ -94,6 +94,7 @@ d3.SpotMyGene.clusteringUPGMA = (distances, labels) ->
       cluster.name not in [distance.row, distance.col]
     clusters.push
       name: distance.row + ',' + distance.col
+      value: distance.value
       children: children
 
   clusters[0]
@@ -111,7 +112,6 @@ d3.SpotMyGene.leaves = (root) ->
   getName root
   leaves
 
-# TODO: remove this hand made map and use ordinal scale instead
 d3.SpotMyGene.getRange = (elements, root) ->
   leaves = d3.SpotMyGene.leaves root
 
