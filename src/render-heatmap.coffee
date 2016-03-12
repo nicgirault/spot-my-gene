@@ -34,7 +34,8 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   zoom = d3.behavior.zoom()
     .scaleExtent([1, 8])
 
-  zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom))
+  if params.enableZoom
+    zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom))
 
   cells = svg.select '.heatmap'
     .append 'g'

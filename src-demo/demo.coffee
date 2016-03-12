@@ -30,6 +30,7 @@ params =
   heatmap:
     cell:
       height: 30
+  enableZoom: false
 
 d3.json 'raw-data.json', (data) ->
   async.map data.st.samplesorder, (sampleId, done) ->

@@ -48,7 +48,8 @@ params = {
     cell: {
       height: 30
     }
-  }
+  },
+  enableZoom: false
 };
 
 d3.json('raw-data.json', function(data) {
