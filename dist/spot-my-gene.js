@@ -282,7 +282,7 @@ d3.SpotMyGene.getRange = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, colorScale, gene, geneAxis, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, sample, sampleIds, sampleRoot, sampleScale, samplesOrder, updateHeatmap, zoom, zoomLevel;
+  var cells, colorScale, gene, geneAxis, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, sample, sampleIds, sampleRoot, sampleScale, samplesOrder, updateHeatmap, zoom;
   if (!data) {
     return;
   }
@@ -330,12 +330,11 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     }
     return results;
   })());
-  geneLabels = svg.select('.heatmap').append('g').append('g').attr('class', 'y axis');
+  geneLabels = svg.select('.gene-labels').append('g').attr('class', 'y axis').attr("transform", "translate(0, " + (params.heatmap.cell.height / 2) + ")");
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
-  zoomLevel = 1;
   zoom = d3.behavior.zoom().scaleExtent([1, 8]);
   zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom));
-  cells = svg.select('.heatmap').append('svg').attr('width', params.heatmap.cell.width * data.samples.length).attr('height', params.heatmap.cell.height * data.genes.length).append('g').attr('class', 'cells-group').call(zoom).selectAll('rect').data(data.cells);
+  cells = svg.select('.heatmap').append('g').attr('class', 'cells-group').call(zoom).selectAll('rect').data(data.cells);
   cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
     return sampleScale(d.sampleId);
   }).attr('width', params.heatmap.cell.width).style('fill', function(d) {
@@ -346,18 +345,14 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     return d3.SpotMyGene.dispatch.cellMouseout(this, d);
   });
   geneAxis = d3.svg.axis().orient('left');
-  updateHeatmap = function(zoomLevel) {
-    var scale;
+  updateHeatmap = function() {
     cells.attr('y', function(d) {
-      return geneScale(d.geneId) * zoomLevel;
-    }).attr('height', params.heatmap.cell.height * zoomLevel);
-    scale = geneScale.copy().range(geneScale.range().map(function(i) {
-      return i * zoomLevel;
-    }));
-    geneAxis.scale(scale);
-    return geneLabels.call(geneAxis);
+      return geneScale(d.geneId);
+    }).attr('height', params.heatmap.cell.height);
+    geneAxis.scale(geneScale);
+    return geneLabels.call(geneAxis).selectAll("text").style("text-anchor", "start");
   };
-  return updateHeatmap(1);
+  return updateHeatmap();
 };
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
@@ -368,8 +363,10 @@ d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
   svg.append('g').attr('class', 'gene-dendogram');
   heatmap = svg.append('g').attr('class', 'heatmap-with-labels').attr('transform', "translate(" + (params.margins.left + params.geneDendogram.height) + ", " + (params.margins.top + params.sampleDendogram.height) + ")");
   heatmap.append('g').attr('class', 'sample-labels').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
-  heatmap.append('g').attr('class', 'gene-labels').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
-  heatmap.append('g').attr('class', 'heatmap').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
+  heatmap.append('clipPath').attr('id', 'gene-labels-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.geneLabels.length).attr('height', params.heatmap.height);
+  heatmap.append('g').attr('class', 'gene-labels').attr('transform', "translate(0, " + params.sampleLabels.length + ")").attr('clip-path', 'url(#gene-labels-panel)');
+  heatmap.append('clipPath').attr('id', 'heatmap-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.heatmap.width).attr('height', params.heatmap.height);
+  heatmap.append('g').attr('class', 'heatmap').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")").attr('clip-path', 'url(#heatmap-panel)');
   return this.render(svg, data, params);
 };
 
@@ -487,6 +484,6 @@ d3.SpotMyGene.zoom = function(params, behavior) {
     scale = d3.event.scale;
     ref = moveChecker(d3.event.translate[0], d3.event.translate[1], d3.event.scale, params.heatmap.width, params.heatmap.height), translateX = ref[0], translateY = ref[1];
     d3.select('.cells-group').attr('transform', "translate(" + translateX + ", " + translateY + ") scale(" + scale + ", " + scale + ")");
-    return d3.select('.y.axis').attr('transform', "translate(0, " + translateY + ") scale(" + scale + ")");
+    return d3.select('.y.axis').attr('transform', "translate(0, " + (translateY + params.heatmap.cell.height * scale / 2) + ") scale(" + scale + ")");
   };
 };

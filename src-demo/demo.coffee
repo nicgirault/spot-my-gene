@@ -15,7 +15,7 @@ params =
       html += '</ul>'
       html
   geneLabels:
-    length: 30
+    length: 100
     showTooltips: true
     tooltipContent: (d) ->
       html = '<ul>'

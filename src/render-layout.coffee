@@ -21,12 +21,28 @@ d3.SpotMyGene.Core.prototype.render2 = (data, params) ->
     .attr 'class', 'sample-labels'
     .attr 'transform', "translate(#{params.geneLabels.length}, #{params.sampleLabels.length})"
 
+  heatmap.append('clipPath')
+    .attr('id', 'gene-labels-panel') # TODO: add number to guarantee unique id
+    .append('rect')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', params.geneLabels.length)
+    .attr('height', params.heatmap.height)
   heatmap.append 'g'
     .attr 'class', 'gene-labels'
-    .attr 'transform', "translate(#{params.geneLabels.length}, #{params.sampleLabels.length})"
+    .attr 'transform', "translate(0, #{params.sampleLabels.length})"
+    .attr('clip-path', 'url(#gene-labels-panel)')
 
-  heatmap.append 'g'
-    .attr 'class', 'heatmap'
-    .attr 'transform', "translate(#{params.geneLabels.length}, #{params.sampleLabels.length})"
+  heatmap.append('clipPath')
+    .attr('id', 'heatmap-panel') # TODO: add number to guarantee unique id
+    .append('rect')
+    .attr('x', 0)
+    .attr('y', 0)
+    .attr('width', params.heatmap.width)
+    .attr('height', params.heatmap.height)
+  heatmap.append('g')
+    .attr('class', 'heatmap')
+    .attr('transform', "translate(#{params.geneLabels.length}, #{params.sampleLabels.length})")
+    .attr('clip-path', 'url(#heatmap-panel)')
 
   @render(svg, data, params)
