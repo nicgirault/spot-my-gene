@@ -323,7 +323,9 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   geneLabels = svg.select('.gene-labels').append('g').attr('class', 'y axis').attr("transform", "translate(0, " + (params.heatmap.cell.height / 2) + ")");
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   zoom = d3.behavior.zoom().scaleExtent([1, 8]);
-  zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom));
+  if (params.enableZoom) {
+    zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom));
+  }
   cells = svg.select('.heatmap').append('g').attr('class', 'cells-group').call(zoom).selectAll('rect').data(data.cells);
   cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
     return sampleScale(d.sampleId);
