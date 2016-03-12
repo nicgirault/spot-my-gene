@@ -32,5 +32,8 @@ d3.SpotMyGene.zoom = (params, behavior) ->
     d3.select('.cells-group')
       .attr('transform', "translate(#{translateX}, #{translateY}) scale(#{scale}, #{scale})")
 
+    d3.select('.x.axis')
+      .attr('transform', "translate(#{translateX + params.heatmap.cell.height*scale/2}, 0) scale(#{scale})")
+
     d3.select('.y.axis')
       .attr('transform', "translate(0, #{translateY + params.heatmap.cell.height*scale/2}) scale(#{scale})")

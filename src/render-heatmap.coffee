@@ -15,13 +15,14 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .domain(sampleIds)
     .range (idx * params.heatmap.cell.width for idx in samplesOrder)
 
-  d3.SpotMyGene.renderSampleLabels(svg, sampleScale, params, data)
+  sampleLabels = svg.select '.sample-labels'
+    .append('g')
+    .attr('class', 'x axis')
+    # .attr("transform", "translate(0, #{params.heatmap.cell.height / 2})")
 
   geneScale = d3.scale.ordinal()
     .domain(geneIds)
     .range (idx * params.heatmap.cell.height for idx in genesOrder)
-
-  # d3.SpotMyGene.renderGeneLabels(svg, geneScale, params, data)
 
   geneLabels = svg.select '.gene-labels'
     .append('g')
@@ -55,7 +56,8 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .on 'mouseout', (d) ->
       d3.SpotMyGene.dispatch.cellMouseout @, d
 
-  geneAxis = d3.svg.axis().orient('left')
+  geneAxis = d3.svg.axis().orient('right')
+  sampleAxis = d3.svg.axis().orient('bottom')
 
   updateHeatmap = ->
     cells
@@ -65,7 +67,11 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
 
     geneAxis.scale(geneScale)
     geneLabels.call(geneAxis)
-    .selectAll("text")
-    .style("text-anchor", "start")
+
+    sampleAxis.scale(sampleScale)
+    sampleLabels.call(sampleAxis)
+    .selectAll('text')
+    .attr('transform', "translate(#{params.heatmap.cell.width/2}, 0) rotate(-45)")
+    .style("text-anchor", "end")
 
   updateHeatmap()
