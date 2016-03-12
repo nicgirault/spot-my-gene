@@ -233,6 +233,7 @@ d3.SpotMyGene.clusteringUPGMA = function(distances, labels) {
     });
     clusters.push({
       name: distance.row + ',' + distance.col,
+      value: distance.value,
       children: children
     });
   }
@@ -395,21 +396,24 @@ d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
   nodes = cluster.nodes(tree);
   links = cluster.links(nodes);
   leaves = nodes.filter(function(node) {
-    return node.name != null;
+    return node.children == null;
   });
-  d3.SpotMyGene.resizeTree(width, leaves.length, nodes[0]);
+  d3.SpotMyGene.resizeTree(width, height, leaves.length, nodes[0]);
   return svg.select('.sample-dendogram').selectAll('.link').data(links).enter().append('path').attr('class', 'link').attr('d', lineData);
 };
 
-d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
-  var cellWidth, index, setNodeSize;
+d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
+  var cellWidth, computeY, index, setNodeSize;
   cellWidth = width / leavesNumber;
   index = 0;
+  computeY = function(value) {
+    return 400 - height * value / root.value;
+  };
   setNodeSize = function(node) {
     var child, l, len, ref;
-    if (node.name != null) {
+    if (node.children == null) {
       node.x = cellWidth * index + cellWidth / 2;
-      return index++;
+      index++;
     } else {
       ref = node.children;
       for (l = 0, len = ref.length; l < len; l++) {
@@ -417,10 +421,15 @@ d3.SpotMyGene.resizeTree = function(width, leavesNumber, root) {
         setNodeSize(child);
       }
       if (node.children.length === 1) {
-        return node.x = node.children[0].x;
+        node.x = node.children[0].x;
       } else {
-        return node.x = (node.children[0].x + node.children[1].x) / 2;
+        node.x = (node.children[0].x + node.children[1].x) / 2;
       }
+    }
+    if (node.value != null) {
+      return node.y = computeY(node.value);
+    } else {
+      return node.y = height;
     }
   };
   return setNodeSize(root);
