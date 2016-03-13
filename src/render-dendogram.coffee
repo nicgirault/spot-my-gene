@@ -23,15 +23,21 @@ d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
 
   d3.SpotMyGene.resizeTree width, height, leaves.length, nodes[0]
 
-  svg.select '.sample-dendogram'
-    # .attr 'width', width
-    # .attr 'height', height
+  link = svg.select '.sample-dendogram'
     .selectAll '.link'
     .data links
-    .enter()
+
+  link.enter()
     .append 'path'
     .attr 'class', 'link'
     .attr 'd', lineData
+    .on 'click', (d) ->
+      d3.SpotMyGene.selectChildLeaves d, d3.SpotMyGene.selectedSamples
+      d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'active')
+    .on 'mouseover', (d) ->
+      d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'highlight')
+    .on 'mouseout', (d) ->
+      d3.SpotMyGene.removeSubTreeClass(nodes, link, 'highlight')
 
 d3.SpotMyGene.resizeTree = (width, height, leavesNumber, root) ->
   cellWidth = width / leavesNumber
@@ -58,3 +64,28 @@ d3.SpotMyGene.resizeTree = (width, height, leavesNumber, root) ->
       node.y = height
 
   setNodeSize root
+
+d3.SpotMyGene.selectChildLeaves = (d, store) ->
+  return unless d.target?
+  store = d3.SpotMyGene.leaves(d.target)
+
+d3.SpotMyGene.addSubTreeClass = (d, nodes, link, className) ->
+  for node in nodes
+    node[className] = false
+
+  classChildNodes = (node) ->
+    node[className] = true
+    if node.children?
+      classChildNodes(node.children[0])
+      classChildNodes(node.children[1])
+
+  classChildNodes(d.target)
+
+  link.classed className, (d) ->
+    d.target[className]
+
+d3.SpotMyGene.removeSubTreeClass = (nodes, link, className) ->
+  for node in nodes
+    node[className] = false
+
+  link.classed className, false

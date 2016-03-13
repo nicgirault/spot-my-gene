@@ -23,6 +23,8 @@ d3.SpotMyGene.preRender = function(params, data) {
   return d3.SpotMyGene.varianceScaling(data.cells);
 };
 
+d3.SpotMyGene.selectedSamples = [];
+
 d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd');
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
@@ -369,7 +371,7 @@ d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
 };
 
 d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
-  var cluster, height, leaves, line, lineData, links, nodes, width;
+  var cluster, height, leaves, line, lineData, link, links, nodes, width;
   width = params.sampleDendogram.width;
   height = params.sampleDendogram.height;
   cluster = d3.layout.cluster().size([width, height]);
@@ -400,7 +402,15 @@ d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
     return node.children == null;
   });
   d3.SpotMyGene.resizeTree(width, height, leaves.length, nodes[0]);
-  return svg.select('.sample-dendogram').selectAll('.link').data(links).enter().append('path').attr('class', 'link').attr('d', lineData);
+  link = svg.select('.sample-dendogram').selectAll('.link').data(links);
+  return link.enter().append('path').attr('class', 'link').attr('d', lineData).on('click', function(d) {
+    d3.SpotMyGene.selectChildLeaves(d, d3.SpotMyGene.selectedSamples);
+    return d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'active');
+  }).on('mouseover', function(d) {
+    return d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'highlight');
+  }).on('mouseout', function(d) {
+    return d3.SpotMyGene.removeSubTreeClass(nodes, link, 'highlight');
+  });
 };
 
 d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
@@ -434,6 +444,41 @@ d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
     }
   };
   return setNodeSize(root);
+};
+
+d3.SpotMyGene.selectChildLeaves = function(d, store) {
+  if (d.target == null) {
+    return;
+  }
+  return store = d3.SpotMyGene.leaves(d.target);
+};
+
+d3.SpotMyGene.addSubTreeClass = function(d, nodes, link, className) {
+  var classChildNodes, l, len, node;
+  for (l = 0, len = nodes.length; l < len; l++) {
+    node = nodes[l];
+    node[className] = false;
+  }
+  classChildNodes = function(node) {
+    node[className] = true;
+    if (node.children != null) {
+      classChildNodes(node.children[0]);
+      return classChildNodes(node.children[1]);
+    }
+  };
+  classChildNodes(d.target);
+  return link.classed(className, function(d) {
+    return d.target[className];
+  });
+};
+
+d3.SpotMyGene.removeSubTreeClass = function(nodes, link, className) {
+  var l, len, node;
+  for (l = 0, len = nodes.length; l < len; l++) {
+    node = nodes[l];
+    node[className] = false;
+  }
+  return link.classed(className, false);
 };
 
 d3.SpotMyGene.varianceScaling = function(cells) {

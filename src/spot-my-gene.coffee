@@ -19,6 +19,7 @@ d3.SpotMyGene.preRender = (params, data) ->
 
   d3.SpotMyGene.varianceScaling data.cells
 
+d3.SpotMyGene.selectedSamples = []
 d3.SpotMyGene.dispatch = d3.dispatch(
   'geneMouseover'
   'sampleMouseover'
