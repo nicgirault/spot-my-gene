@@ -38,7 +38,7 @@ d3.SpotMyGene.resizeTree = (width, height, leavesNumber, root) ->
   index = 0
 
   computeY = (value) ->
-    400 - height * value / root.value
+    height *( 1 - value / root.value)
 
   setNodeSize = (node) ->
     unless node.children?

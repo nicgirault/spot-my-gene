@@ -5,7 +5,10 @@
     "nicgirault <nic.girault@gmail.com>"
   ],
   "description": "A d3 librairy to display differential gene expression analysis and find the gene of your dreams!",
-  "main": "dist/spot-my-gene.js",
+  "main": [
+    "dist/spot-my-gene.js",
+    "dist/spot-my-gene.css",
+  ],
   "moduleType": [],
   "keywords": [
     "gene"

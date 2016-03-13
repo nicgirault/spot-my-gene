@@ -26,4 +26,6 @@ d3.SpotMyGene.dispatch = d3.dispatch(
   'sampleMouseout'
   'cellMouseover'
   'cellMouseout'
+  'cellMouseout'
+  'renderEnd'
 )

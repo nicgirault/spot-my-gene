@@ -76,3 +76,4 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .style("text-anchor", "end")
 
   updateHeatmap()
+  d3.SpotMyGene.dispatch.renderEnd()

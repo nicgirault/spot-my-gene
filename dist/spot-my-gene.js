@@ -23,7 +23,7 @@ d3.SpotMyGene.preRender = function(params, data) {
   return d3.SpotMyGene.varianceScaling(data.cells);
 };
 
-d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout');
+d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd');
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
   var gene, geneByIds, l, len, ref;
@@ -348,7 +348,8 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     sampleAxis.scale(sampleScale);
     return sampleLabels.call(sampleAxis).selectAll('text').attr('transform', "translate(" + (params.heatmap.cell.width / 2) + ", 0) rotate(-45)").style("text-anchor", "end");
   };
-  return updateHeatmap();
+  updateHeatmap();
+  return d3.SpotMyGene.dispatch.renderEnd();
 };
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
@@ -407,7 +408,7 @@ d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
   cellWidth = width / leavesNumber;
   index = 0;
   computeY = function(value) {
-    return 400 - height * value / root.value;
+    return height * (1 - value / root.value);
   };
   setNodeSize = function(node) {
     var child, l, len, ref;
