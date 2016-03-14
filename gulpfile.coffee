@@ -23,6 +23,7 @@ gulp.task 'compile', ->
     'src/render-dendogram.coffee'
     'src/normalization.coffee'
     'src/zoom.coffee'
+    'src/heatmap.coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true

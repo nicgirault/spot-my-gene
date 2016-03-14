@@ -32,8 +32,9 @@ d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
     .attr 'class', 'link'
     .attr 'd', lineData
     .on 'click', (d) ->
-      d3.SpotMyGene.selectChildLeaves d, d3.SpotMyGene.selectedSamples
+      selectedSamples = d3.SpotMyGene.leaves(d.source)
       d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'active')
+      d3.SpotMyGene.dispatch.updateSelectedSamples(d.source, selectedSamples)
     .on 'mouseover', (d) ->
       d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'highlight')
     .on 'mouseout', (d) ->
@@ -65,10 +66,6 @@ d3.SpotMyGene.resizeTree = (width, height, leavesNumber, root) ->
 
   setNodeSize root
 
-d3.SpotMyGene.selectChildLeaves = (d, store) ->
-  return unless d.target?
-  store = d3.SpotMyGene.leaves(d.target)
-
 d3.SpotMyGene.addSubTreeClass = (d, nodes, link, className) ->
   for node in nodes
     node[className] = false
@@ -79,7 +76,7 @@ d3.SpotMyGene.addSubTreeClass = (d, nodes, link, className) ->
       classChildNodes(node.children[0])
       classChildNodes(node.children[1])
 
-  classChildNodes(d.target)
+  classChildNodes(d.source)
 
   link.classed className, (d) ->
     d.target[className]
