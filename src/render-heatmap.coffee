@@ -49,7 +49,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     samplesOrder = d3.SpotMyGene.getRange(samples, root)
     params.heatmap.cell.width = params.heatmap.width / samples.length
     sampleScale = d3.scale.ordinal()
-      .domain (sample.id for sample in samples)
+      .domain (sample.name for sample in samples)
       .range (idx * params.heatmap.cell.width for idx in samplesOrder)
     d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params)
     cellsData = filterBySample(data.cells, samples)

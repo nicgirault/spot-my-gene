@@ -346,7 +346,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
       results = [];
       for (l = 0, len = samples.length; l < len; l++) {
         sample = samples[l];
-        results.push(sample.id);
+        results.push(sample.name);
       }
       return results;
     })()).range((function() {
