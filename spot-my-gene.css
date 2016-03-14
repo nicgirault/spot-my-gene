@@ -21,6 +21,15 @@
   stroke: grey;
   stroke-width: 2px;
 }
+.spot-my-gene .link.highlight {
+  stroke: #607D8B;
+  stroke-width: 5px;
+  cursor: pointer;
+}
+.spot-my-gene .link.active {
+  stroke: #F44336;
+  stroke-width: 5px;
+}
 .spot-my-gene text {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
