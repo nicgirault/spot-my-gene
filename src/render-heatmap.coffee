@@ -44,13 +44,17 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .append('g')
     .attr('class', 'cells-group')
 
+  colorScale = d3.SpotMyGene.buildColorScale(data.cells)
+  legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
+  legend.render(colorScale)
+
   d3.SpotMyGene.dispatch.on 'updateSelectedSamples', (root, samples) ->
     samplesOrder = d3.SpotMyGene.getRange(samples, root)
     params.heatmap.cell.width = params.heatmap.width / samples.length
     sampleScale = d3.scale.ordinal()
       .domain (sample.name for sample in samples)
       .range (idx * params.heatmap.cell.width for idx in samplesOrder)
-    d3.SpotMyGene.renderDendogram svg, root, params
+    # d3.SpotMyGene.renderDendogram svg, root, params
 
     d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params)
     cellsData = filterBySample(data.cells, samples)
@@ -59,5 +63,6 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   d3.SpotMyGene.renderDendogram svg, sampleRoot, params
   d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params)
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale)
+
 
   d3.SpotMyGene.dispatch.renderEnd()
