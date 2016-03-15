@@ -277,7 +277,7 @@ d3.SpotMyGene.getRange = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, legend, sample, sampleIds, sampleLabels, sampleRoot, sampleScale, samplesOrder;
+  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale, samplesOrder;
   if (!data) {
     return;
   }
@@ -367,6 +367,10 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params);
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale);
+  samplePie = new d3.SpotMyGene.SamplePie(params.genePie, data.samples);
+  samplePie.render(data.samples, function(sample) {
+    return sample.summary.sx;
+  });
   return d3.SpotMyGene.dispatch.renderEnd();
 };
 
@@ -612,5 +616,69 @@ d3.SpotMyGene.HeatmapLegend = function(params) {
       }).attr('y', params.height + labelsHeight).style('font-size', params.labels.size).style('fill', params.labels.color);
     }
   };
+  return this;
+};
+
+d3.SpotMyGene.SamplePie = function(params, initialSamples) {
+  var chart, currentIds, render;
+  currentIds = [];
+  chart = c3.generate({
+    bindto: params.container,
+    data: {
+      columns: [],
+      type: 'pie'
+    }
+  });
+  render = function(samples, accessor) {
+    var elt, idsToUnload, nest, newIds;
+    nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(samples);
+    newIds = (function() {
+      var l, len, results;
+      results = [];
+      for (l = 0, len = nest.length; l < len; l++) {
+        elt = nest[l];
+        results.push(elt.key);
+      }
+      return results;
+    })();
+    idsToUnload = currentIds.filter(function(id) {
+      return indexOf.call(newIds, id) < 0;
+    });
+    chart.load({
+      columns: (function() {
+        var l, len, results;
+        results = [];
+        for (l = 0, len = nest.length; l < len; l++) {
+          elt = nest[l];
+          results.push([elt.key, elt.values.length]);
+        }
+        return results;
+      })()
+    });
+    chart.unload({
+      ids: idsToUnload
+    });
+    return currentIds = newIds;
+  };
+  d3.SpotMyGene.dispatch.on('updateSelectedSamples', function(root, leaves) {
+    var leaf, names, samples;
+    names = (function() {
+      var l, len, results;
+      results = [];
+      for (l = 0, len = leaves.length; l < len; l++) {
+        leaf = leaves[l];
+        results.push(leaf.name);
+      }
+      return results;
+    })();
+    samples = initialSamples.filter(function(sample) {
+      var ref;
+      return ref = sample.id, indexOf.call(names, ref) >= 0;
+    });
+    return render(samples, function(sample) {
+      return sample.summary.sx;
+    });
+  });
+  this.render = render;
   return this;
 };

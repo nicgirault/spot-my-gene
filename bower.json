@@ -7,7 +7,7 @@
   "description": "A d3 librairy to display differential gene expression analysis and find the gene of your dreams!",
   "main": [
     "dist/spot-my-gene.js",
-    "dist/spot-my-gene.css",
+    "dist/spot-my-gene.css"
   ],
   "moduleType": [],
   "keywords": [
@@ -23,7 +23,8 @@
   ],
   "dependencies": {
     "d3": "3.5.16",
-    "d3-tip": "0.6.7"
+    "d3-tip": "0.6.7",
+    "c3": "0.4.10"
   },
   "resolutions": {
     "d3": "3.5.16"

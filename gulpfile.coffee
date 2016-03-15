@@ -25,6 +25,7 @@ gulp.task 'compile', ->
     'src/zoom.coffee'
     'src/heatmap.coffee'
     'src/legend.coffee'
+    'src/sample-pie.coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true
@@ -39,6 +40,7 @@ gulp.task 'less', ->
 gulp.task 'vendor', ->
   gulp.src [
     'bower_components/d3/d3.min.js'
+    'bower_components/c3/c3.min.js'
     'bower_components/d3-tip/index.js'
     'bower_components/async/lib/async.js'
   ]

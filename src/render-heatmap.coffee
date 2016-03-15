@@ -64,5 +64,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params)
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale)
 
+  samplePie = new d3.SpotMyGene.SamplePie(params.genePie, data.samples)
+  samplePie.render data.samples, (sample) -> sample.summary.sx
 
   d3.SpotMyGene.dispatch.renderEnd()
