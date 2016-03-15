@@ -23,6 +23,10 @@ d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
 
   d3.SpotMyGene.resizeTree width, height, leaves.length, nodes[0]
 
+  svg.select '.sample-dendogram'
+    .selectAll '.link'
+    .remove()
+
   link = svg.select '.sample-dendogram'
     .selectAll '.link'
     .data links
