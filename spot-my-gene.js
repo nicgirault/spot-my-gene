@@ -305,7 +305,6 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   samplesOrder = d3.SpotMyGene.getRange(data.samples, sampleRoot);
   geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds);
   genesOrder = d3.SpotMyGene.getRange(data.genes, geneRoot);
-  d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   filterBySample = function(cells, samples) {
     var selectedIds;
     selectedIds = samples.map(function(sample) {
@@ -358,10 +357,12 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
       }
       return results;
     })());
+    d3.SpotMyGene.renderDendogram(svg, root, params);
     d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params);
     cellsData = filterBySample(data.cells, samples);
     return d3.SpotMyGene.renderHeatmapCells(svg, cells, cellsData, params, sampleScale, geneScale);
   });
+  d3.SpotMyGene.renderDendogram(svg, sampleRoot, params);
   d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params);
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale);
   return d3.SpotMyGene.dispatch.renderEnd();
@@ -415,6 +416,7 @@ d3.SpotMyGene.renderDendogram = function(svg, tree, params) {
     return node.children == null;
   });
   d3.SpotMyGene.resizeTree(width, height, leaves.length, nodes[0]);
+  svg.select('.sample-dendogram').selectAll('.link').remove();
   link = svg.select('.sample-dendogram').selectAll('.link').data(links);
   return link.enter().append('path').attr('class', 'link').attr('d', lineData).on('click', function(d) {
     var selectedSamples;
@@ -564,23 +566,23 @@ d3.SpotMyGene.renderHeatmapCells = function(parentContainer, cells, cellsData, p
   cells = cells.selectAll('rect').data(cellsData, function(d) {
     return d.sampleId + "-" + d.geneId;
   });
-  cells.style('fill', function(d) {
+  cells.transition().style('fill', function(d) {
     return colorScale(d.value);
   }).attr('x', function(d) {
     return sampleScale(d.sampleId);
   }).attr('y', function(d) {
     return geneScale(d.geneId);
   }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height);
-  cells.enter().append('rect').attr('class', 'cell').attr('x', function(d) {
+  cells.enter().append('rect').attr('class', 'cell').style('fill', 'white').on('mouseover', function(d) {
+    return d3.SpotMyGene.dispatch.cellMouseover(this, d);
+  }).on('mouseout', function(d) {
+    return d3.SpotMyGene.dispatch.cellMouseout(this, d);
+  }).transition().attr('x', function(d) {
     return sampleScale(d.sampleId);
   }).attr('y', function(d) {
     return geneScale(d.geneId);
   }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height).style('fill', function(d) {
     return colorScale(d.value);
-  }).on('mouseover', function(d) {
-    return d3.SpotMyGene.dispatch.cellMouseover(this, d);
-  }).on('mouseout', function(d) {
-    return d3.SpotMyGene.dispatch.cellMouseout(this, d);
   });
   return cells.exit().remove();
 };
