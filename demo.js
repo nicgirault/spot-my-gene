@@ -59,6 +59,9 @@ params = {
       precision: 2,
       color: '#444'
     }
+  },
+  genePie: {
+    container: '#gene-pie'
   }
 };
 
