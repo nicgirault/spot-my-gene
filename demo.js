@@ -49,7 +49,17 @@ params = {
       height: 30
     }
   },
-  enableZoom: false
+  enableZoom: false,
+  legend: {
+    container: '#legend',
+    width: 700,
+    height: 20,
+    labels: {
+      size: 9,
+      precision: 2,
+      color: '#444'
+    }
+  }
 };
 
 d3.json('raw-data.json', function(data) {

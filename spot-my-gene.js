@@ -277,7 +277,7 @@ d3.SpotMyGene.getRange = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, sample, sampleIds, sampleLabels, sampleRoot, sampleScale, samplesOrder;
+  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, genesOrder, idx, legend, sample, sampleIds, sampleLabels, sampleRoot, sampleScale, samplesOrder;
   if (!data) {
     return;
   }
@@ -336,6 +336,9 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   sampleLabels = svg.select('.sample-labels').append('g').attr('class', 'x axis');
   geneLabels = svg.select('.gene-labels').append('g').attr('class', 'y axis').attr("transform", "translate(0, " + (params.heatmap.cell.height / 2) + ")");
   cells = svg.select('.heatmap').append('g').attr('class', 'cells-group');
+  colorScale = d3.SpotMyGene.buildColorScale(data.cells);
+  legend = new d3.SpotMyGene.HeatmapLegend(params.legend);
+  legend.render(colorScale);
   d3.SpotMyGene.dispatch.on('updateSelectedSamples', function(root, samples) {
     var cellsData;
     samplesOrder = d3.SpotMyGene.getRange(samples, root);
@@ -357,7 +360,6 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
       }
       return results;
     })());
-    d3.SpotMyGene.renderDendogram(svg, root, params);
     d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params);
     cellsData = filterBySample(data.cells, samples);
     return d3.SpotMyGene.renderHeatmapCells(svg, cells, cellsData, params, sampleScale, geneScale);
@@ -585,4 +587,30 @@ d3.SpotMyGene.renderHeatmapCells = function(parentContainer, cells, cellsData, p
     return colorScale(d.value);
   });
   return cells.exit().remove();
+};
+
+d3.SpotMyGene.HeatmapLegend = function(params) {
+  var labelsHeight, legend, svg;
+  labelsHeight = params.labels.size;
+  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.height + labelsHeight);
+  legend = svg.append('g').attr('class', 'legend-tills');
+  this.render = function(colorScale) {
+    var quantiles, selection, tillWidth;
+    quantiles = colorScale.quantiles();
+    selection = legend.selectAll('rect').data(quantiles);
+    tillWidth = params.width / colorScale.range().length;
+    selection.enter().append('rect').style('fill', function(d) {
+      return colorScale(d);
+    }).attr('x', function(d, i) {
+      return tillWidth * i;
+    }).attr('y', 0).attr('width', tillWidth).attr('height', params.height);
+    if (params.labels != null) {
+      return selection.enter().append('text').attr('class', 'mono').text(function(d) {
+        return "≥ " + (d.toPrecision(params.labels.precision));
+      }).attr('x', function(d, i) {
+        return tillWidth * i;
+      }).attr('y', params.height + labelsHeight).style('font-size', params.labels.size).style('fill', params.labels.color);
+    }
+  };
+  return this;
 };
