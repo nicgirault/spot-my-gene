@@ -1,8 +1,4 @@
-d3.SpotMyGene.renderHeatmapAxes = (geneLabels, sampleLabels, geneScale, sampleScale, params) ->
-  geneAxis = d3.svg.axis().orient('right')
-  geneAxis.scale(geneScale)
-  geneLabels.call(geneAxis)
-
+d3.SpotMyGene.renderHeatmapAxes = (geneLabels, sampleLabels, geneScale, sampleScale, params, data) ->
   sampleAxis = d3.svg.axis().orient('bottom')
   sampleAxis.scale(sampleScale)
   sampleLabels.call(sampleAxis)

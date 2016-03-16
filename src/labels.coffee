@@ -18,22 +18,40 @@ d3.SpotMyGene.renderSampleLabels = (parentElement, scale, params, data) ->
   # d3.SpotMyGene.listenSampleMouseover(label, params, data)
   # parentElement
 
-d3.SpotMyGene.renderGeneLabels = (parentElement, scale, params, data) ->
-  # geneAxis = d3.svg.axis()
-  #   .scale(scale)
-  #   .orient('left')
-  #
-  # label = parentElement.select '.heatmap'
-  #   .append('g')
-  #   .attr('class', 'y axis')
-  #   .call(geneAxis)
-  #   .selectAll('text')
-  #   .attr("transform", "translate(-6," + params.heatmap.cell.height / 1.5 + ")")
-  #   .style('text-anchor', 'end')
-  #   .on 'mouseover', (d, i, j) ->
-  #     d3.SpotMyGene.dispatch.geneMouseover d, i, j
-  #   .on 'mouseout', (d, i, j) ->
-  #     d3.SpotMyGene.dispatch.geneMouseout d, i, j
-  #
-  # d3.SpotMyGene.listenGeneMouseover(label, params, data)
-  # parentElement
+d3.SpotMyGene.GeneLabels = (params, parentElement) ->
+
+  geneLabels = parentElement.select '.gene-labels'
+    .append 'g'
+    .attr 'class', 'y axis'
+    .attr 'transform', "translate(0, #{params.heatmap.cell.height / 2})"
+
+  updateSelected = ->
+    geneLabels.selectAll 'text'
+      .classed 'selected', (d) -> d._selected
+
+    selectedGenes = geneLabels.selectAll('text')
+      .data()
+      .filter (gene) -> gene._selected
+
+    d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes
+
+  render = (genes) ->
+    selection = geneLabels.selectAll 'text'
+      .data genes, (gene) -> gene.id
+
+    selection
+      .text (d) -> d.id
+      .attr 'y', (d, i) -> i * params.heatmap.cell.height
+
+    selection.enter()
+      .append 'text'
+      .text (d) -> d.id
+      .attr 'x', 0
+      .attr 'y', (d, i) -> i * params.heatmap.cell.height
+
+    selection.exit().remove()
+
+    d3.selectable geneLabels, geneLabels.selectAll('text'), updateSelected
+
+  @render = render
+  @
