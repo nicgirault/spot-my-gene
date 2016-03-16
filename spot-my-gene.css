@@ -1,6 +1,12 @@
 .spot-my-gene text {
   cursor: default;
 }
+.spot-my-gene text.selected {
+  fill: #3F51B5;
+}
+.spot-my-gene text::selection {
+  background: rgba(63, 81, 181, 0.2);
+}
 .spot-my-gene .cell.active {
   opacity: 0.5;
 }
