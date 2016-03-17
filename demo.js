@@ -62,6 +62,9 @@ params = {
   },
   genePie: {
     container: '#gene-pie'
+  },
+  samplePie: {
+    container: '#sample-pie'
   }
 };
 
