@@ -13,13 +13,13 @@ params = {
     showTooltips: true,
     tooltipContent: function(d) {
       var html, key, ref, value;
-      html = '<ul>';
+      html = '<table class="c3-tooltip">';
       ref = d.summary;
       for (key in ref) {
         value = ref[key];
-        html += "<li><b>" + key + "</b>: " + value + "</li>";
+        html += "<tr><td>" + key + "</td><td> " + value + "</td></tr>";
       }
-      html += '</ul>';
+      html += '</table>';
       return html;
     }
   },
