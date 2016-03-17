@@ -31,4 +31,5 @@ d3.SpotMyGene.dispatch = d3.dispatch(
   'renderEnd'
   'updateSelectedSamples'
   'updateSelectedGenes'
+  'genePieAccessorChanged'
 )
