@@ -495,7 +495,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, genePie, geneRoot, geneScale, i, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale;
+  var cells, filterBySample, gene, geneIds, geneLabels, genePie, geneRoot, geneScale, heatmap, i, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale;
   if (!data) {
     return;
   }
@@ -568,11 +568,10 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     return results;
   })());
   cells = svg.select('.heatmap').append('g').attr('class', 'cells-group');
-  colorScale = d3.SpotMyGene.buildColorScale(data.cells);
-  legend = new d3.SpotMyGene.HeatmapLegend(params.legend);
-  legend.render(colorScale);
   d3.SpotMyGene.renderDendogram(svg, sampleRoot, data.samples, params);
-  d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale);
+  heatmap = new d3.SpotMyGene.Heatmap(svg, cells, data.cells, params.heatmap, sampleScale, geneScale);
+  legend = new d3.SpotMyGene.HeatmapLegend(params.legend);
+  legend.render(heatmap.colorScale);
   geneLabels = new d3.SpotMyGene.GeneLabels(params, svg);
   geneLabels.render(data.genes);
   sampleLabels = new d3.SpotMyGene.SampleLabels(params, svg);
@@ -813,9 +812,13 @@ d3.SpotMyGene.zoom = function(params, behavior) {
   };
 };
 
-d3.SpotMyGene.renderHeatmapCells = function(parentContainer, cells, cellsData, params, sampleScale, geneScale) {
-  var colorScale;
-  colorScale = d3.SpotMyGene.buildColorScale(cellsData);
+d3.SpotMyGene.Heatmap = function(parentContainer, cells, cellsData, params, sampleScale, geneScale) {
+  var colorScale, domain;
+  domain = d3.extent(cellsData, function(cell) {
+    return cell.value;
+  });
+  domain.splice(1, 0, (domain[0] + domain[1]) / 2);
+  colorScale = d3.scale.linear().domain(domain).range(params.colors);
   cells = cells.selectAll('rect').data(cellsData, function(d) {
     return d.sampleId + "-" + d.geneId;
   });
@@ -825,7 +828,7 @@ d3.SpotMyGene.renderHeatmapCells = function(parentContainer, cells, cellsData, p
     return sampleScale(d.sampleId);
   }).attr('y', function(d) {
     return geneScale(d.geneId);
-  }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height);
+  }).attr('width', params.cell.width).attr('height', params.cell.height);
   cells.enter().append('rect').attr('class', 'cell').style('fill', 'white').on('mouseover', function(d) {
     return d3.SpotMyGene.dispatch.cellMouseover(this, d);
   }).on('mouseout', function(d) {
@@ -834,10 +837,12 @@ d3.SpotMyGene.renderHeatmapCells = function(parentContainer, cells, cellsData, p
     return sampleScale(d.sampleId);
   }).attr('y', function(d) {
     return geneScale(d.geneId);
-  }).attr('width', params.heatmap.cell.width).attr('height', params.heatmap.cell.height).style('fill', function(d) {
+  }).attr('width', params.cell.width).attr('height', params.cell.height).style('fill', function(d) {
     return colorScale(d.value);
   });
-  return cells.exit().remove();
+  cells.exit().remove();
+  this.colorScale = colorScale;
+  return this;
 };
 
 d3.SpotMyGene.HeatmapLegend = function(params) {
@@ -846,10 +851,18 @@ d3.SpotMyGene.HeatmapLegend = function(params) {
   svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.height + labelsHeight);
   legend = svg.append('g').attr('class', 'legend-tills');
   this.render = function(colorScale) {
-    var quantiles, selection, tillWidth;
-    quantiles = colorScale.quantiles();
+    var domain, i, quantiles, selection, tillWidth;
+    domain = colorScale.domain();
+    quantiles = (function() {
+      var l, ref, results;
+      results = [];
+      for (i = l = 0, ref = params.size; 0 <= ref ? l < ref : l > ref; i = 0 <= ref ? ++l : --l) {
+        results.push(domain[0] + i * (domain[2] - domain[0]) / (params.size - 1));
+      }
+      return results;
+    })();
     selection = legend.selectAll('rect').data(quantiles);
-    tillWidth = params.width / colorScale.range().length;
+    tillWidth = params.width / params.size;
     selection.enter().append('rect').style('fill', function(d) {
       return colorScale(d);
     }).attr('x', function(d, i) {
@@ -874,6 +887,9 @@ d3.SpotMyGene.SamplePie = function(params, initialSamples) {
     data: {
       columns: [],
       type: 'pie'
+    },
+    color: {
+      pattern: params.colors
     }
   });
   render = function(samples, accessor) {
@@ -919,11 +935,15 @@ d3.SpotMyGene.SamplePie = function(params, initialSamples) {
 d3.SpotMyGene.GenePie = function(params, initialGenes) {
   var chart, currentIds, render;
   currentIds = [];
+  console.log;
   chart = c3.generate({
     bindto: params.container,
     data: {
       columns: [],
       type: 'pie'
+    },
+    color: {
+      pattern: params.colors
     }
   });
   render = function(genes, accessor) {
