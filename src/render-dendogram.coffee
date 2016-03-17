@@ -1,4 +1,4 @@
-d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
+d3.SpotMyGene.renderDendogram = (svg, tree, samples, params) ->
   width = params.sampleDendogram.width
   height = params.sampleDendogram.height
 
@@ -36,9 +36,12 @@ d3.SpotMyGene.renderDendogram = (svg, tree, params) ->
     .attr 'class', 'link'
     .attr 'd', lineData
     .on 'click', (d) ->
-      selectedSamples = d3.SpotMyGene.leaves(d.source)
+      selectedLeaves = d3.SpotMyGene.leaves(d.source)
       d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'active')
-      d3.SpotMyGene.dispatch.updateSelectedSamples(d.source, selectedSamples)
+      names = (leaf.name for leaf in selectedLeaves)
+      selectedSamples = samples.filter (sample) ->
+        sample.id in names
+      d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples)
     .on 'mouseover', (d) ->
       d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'highlight')
     .on 'mouseout', (d) ->

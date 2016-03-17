@@ -26,11 +26,8 @@ d3.SpotMyGene.SamplePie = (params, initialSamples) ->
 
     currentIds = newIds
 
-  d3.SpotMyGene.dispatch.on 'updateSelectedSamples', (root, leaves) ->
-    names = (leaf.name for leaf in leaves)
-    samples = initialSamples.filter (sample) ->
-      sample.id in names
-    render samples, (sample) -> sample.summary.sx
+  d3.SpotMyGene.dispatch.on 'updateSelectedSamples.samplePie', (selectedSamples) ->
+    render selectedSamples, (sample) -> sample.summary.sx
 
   @render = render
   @

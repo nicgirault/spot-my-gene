@@ -38,7 +38,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
   legend.render(colorScale)
 
-  d3.SpotMyGene.renderDendogram svg, sampleRoot, params
+  d3.SpotMyGene.renderDendogram svg, sampleRoot, data.samples, params
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale)
 
   geneLabels = new d3.SpotMyGene.GeneLabels params, svg
@@ -47,7 +47,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   sampleLabels = new d3.SpotMyGene.SampleLabels params, svg
   sampleLabels.render data.samples
 
-  samplePie = new d3.SpotMyGene.SamplePie(params.genePie, data.samples)
+  samplePie = new d3.SpotMyGene.SamplePie(params.samplePie, data.samples)
   samplePie.render data.samples, (sample) -> sample.summary.sx
 
   d3.SpotMyGene.dispatch.renderEnd()
