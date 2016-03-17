@@ -476,7 +476,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root) {
     for (leafIdx in leaves) {
       leaf = leaves[leafIdx];
       if (leaf.name === element.name) {
-        element.idx = leafIdx;
+        element.idx = parseInt(leafIdx);
         break;
       }
     }
@@ -514,27 +514,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "col"), sampleIds);
   d3.SpotMyGene.sortByCluster(data.samples, sampleRoot);
   geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds);
-  console.log((function() {
-    var l, len, ref, results;
-    ref = data.genes;
-    results = [];
-    for (l = 0, len = ref.length; l < len; l++) {
-      sample = ref[l];
-      results.push(sample.id);
-    }
-    return results;
-  })());
   d3.SpotMyGene.sortByCluster(data.genes, geneRoot);
-  console.log((function() {
-    var l, len, ref, results;
-    ref = data.genes;
-    results = [];
-    for (l = 0, len = ref.length; l < len; l++) {
-      sample = ref[l];
-      results.push(sample.id);
-    }
-    return results;
-  })());
   filterBySample = function(cells, samples) {
     var selectedIds;
     selectedIds = samples.map(function(sample) {
