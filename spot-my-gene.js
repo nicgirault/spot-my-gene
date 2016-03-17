@@ -167,7 +167,7 @@ d3.SpotMyGene.preRender = function(params, data) {
 
 d3.SpotMyGene.selectedSamples = [];
 
-d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd', 'updateSelectedSamples', 'updateSelectedGenes');
+d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd', 'updateSelectedSamples', 'updateSelectedGenes', 'genePieAccessorChanged');
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
   var gene, geneByIds, l, len, ref;
@@ -573,39 +573,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     return sample.summary.sx;
   });
   genePie = new d3.SpotMyGene.GenePie(params.genePie, data.genes);
-  genePie.render(data.genes, function(gene) {
-    if (gene.id[gene.id.length - 1] === "1") {
-      return 'Protein coding';
-    }
-    if (gene.id[gene.id.length - 1] === "2") {
-      return 'Hormone';
-    }
-    if (gene.id[gene.id.length - 1] === "3") {
-      return 'Marker';
-    }
-    if (gene.id[gene.id.length - 1] === "4") {
-      return 'SiRNA';
-    }
-    if (gene.id[gene.id.length - 1] === "5") {
-      return 'Cell cycle';
-    }
-    if (gene.id[gene.id.length - 1] === "6") {
-      return 'Transcription factor';
-    }
-    if (gene.id[gene.id.length - 1] === "7") {
-      return 'Antigen';
-    }
-    if (gene.id[gene.id.length - 1] === "8") {
-      return 'Adhesion molecule';
-    }
-    if (gene.id[gene.id.length - 1] === "9") {
-      return 'Ribozyme';
-    }
-    if (gene.id[gene.id.length - 1] === "0") {
-      return 'Growth factor';
-    }
-    return "Unknown";
-  });
+  genePie.render(data.genes, params.genePie.accessor);
   return d3.SpotMyGene.dispatch.renderEnd();
 };
 
@@ -925,9 +893,10 @@ d3.SpotMyGene.SamplePie = function(params, initialSamples) {
 };
 
 d3.SpotMyGene.GenePie = function(params, initialGenes) {
-  var chart, currentIds, render;
+  var accessorBuffer, chart, currentIds, render, selectedGenesBuffer;
   currentIds = [];
-  console.log;
+  selectedGenesBuffer = initialGenes;
+  accessorBuffer = params.accessor;
   chart = c3.generate({
     bindto: params.container,
     data: {
@@ -970,39 +939,12 @@ d3.SpotMyGene.GenePie = function(params, initialGenes) {
     return currentIds = newIds;
   };
   d3.SpotMyGene.dispatch.on('updateSelectedGenes.pie', function(selectedGenes) {
-    return render(selectedGenes, function(gene, i) {
-      if (gene.id[gene.id.length - 1] === "1") {
-        return 'Protein coding';
-      }
-      if (gene.id[gene.id.length - 1] === "2") {
-        return 'Hormone';
-      }
-      if (gene.id[gene.id.length - 1] === "3") {
-        return 'Marker';
-      }
-      if (gene.id[gene.id.length - 1] === "4") {
-        return 'SiRNA';
-      }
-      if (gene.id[gene.id.length - 1] === "5") {
-        return 'Cell cycle';
-      }
-      if (gene.id[gene.id.length - 1] === "6") {
-        return 'Transcription factor';
-      }
-      if (gene.id[gene.id.length - 1] === "7") {
-        return 'Antigen';
-      }
-      if (gene.id[gene.id.length - 1] === "8") {
-        return 'Adhesion molecule';
-      }
-      if (gene.id[gene.id.length - 1] === "9") {
-        return 'Ribozyme';
-      }
-      if (gene.id[gene.id.length - 1] === "0") {
-        return 'Growth factor';
-      }
-      return "Unknown";
-    });
+    selectedGenesBuffer = selectedGenes;
+    return render(selectedGenes, accessorBuffer);
+  });
+  d3.SpotMyGene.dispatch.on('genePieAccessorChanged.pie', function(accessor) {
+    accessorBuffer = accessor;
+    return render(selectedGenesBuffer, accessor);
   });
   this.render = render;
   return this;

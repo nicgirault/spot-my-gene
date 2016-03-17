@@ -20,6 +20,10 @@
         <div id='legend' class='spot-my-gene'></div>
       </td>
       <td width="400px">
+        <select onchange="genePieAccessorChange(this.value)">
+          <option value="type">Gene type</option>
+          <option value="tag">Gene tags</option>
+        </select>
         <div id='gene-pie' class='spot-my-gene'></div>
         <div id='sample-pie' class='spot-my-gene'></div>
       </td>
