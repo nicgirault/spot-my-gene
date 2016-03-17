@@ -47,13 +47,19 @@ params = {
   heatmap: {
     cell: {
       height: 30
-    }
+    },
+    colors: [
+      '#E75753',
+      '#FEFEFE',
+      '#009688',
+    ]
   },
   enableZoom: false,
   legend: {
     container: '#legend',
     width: 700,
     height: 20,
+    size: 10,
     labels: {
       size: 9,
       precision: 2,
@@ -61,10 +67,25 @@ params = {
     }
   },
   genePie: {
-    container: '#gene-pie'
+    container: '#gene-pie',
+    colors: [
+      '#8dd3c7',
+      '#ffffb3',
+      '#bebada',
+      '#fb8072',
+      '#80b1d3',
+      '#fdb462',
+      '#b3de69',
+      '#fccde5',
+      '#d9d9d9',
+      '#bc80bd',
+      '#ccebc5',
+      '#ffed6f',
+    ]
   },
   samplePie: {
-    container: '#sample-pie'
+    container: '#sample-pie',
+    colors: d3.scale.category20().range()
   }
 };
 

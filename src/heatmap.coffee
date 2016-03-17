@@ -1,5 +1,10 @@
-d3.SpotMyGene.renderHeatmapCells = (parentContainer, cells, cellsData, params, sampleScale, geneScale) ->
-  colorScale = d3.SpotMyGene.buildColorScale(cellsData)
+d3.SpotMyGene.Heatmap = (parentContainer, cells, cellsData, params, sampleScale, geneScale) ->
+  domain = d3.extent cellsData, (cell) -> cell.value
+  domain.splice 1, 0, (domain[0] + domain[1])/2
+
+  colorScale = d3.scale.linear()
+    .domain domain
+    .range params.colors
 
   cells = cells.selectAll('rect')
     .data(cellsData, (d) -> "#{d.sampleId}-#{d.geneId}")
@@ -9,8 +14,8 @@ d3.SpotMyGene.renderHeatmapCells = (parentContainer, cells, cellsData, params, s
     .style('fill', (d) -> colorScale(d.value))
     .attr('x', (d) -> sampleScale(d.sampleId))
     .attr('y', (d) -> geneScale(d.geneId))
-    .attr('width', params.heatmap.cell.width)
-    .attr('height', params.heatmap.cell.height)
+    .attr('width', params.cell.width)
+    .attr('height', params.cell.height)
 
   cells.enter()
     .append('rect')
@@ -23,8 +28,11 @@ d3.SpotMyGene.renderHeatmapCells = (parentContainer, cells, cellsData, params, s
     .transition()
     .attr('x', (d) -> sampleScale(d.sampleId))
     .attr('y', (d) -> geneScale(d.geneId))
-    .attr('width', params.heatmap.cell.width)
-    .attr('height', params.heatmap.cell.height)
+    .attr('width', params.cell.width)
+    .attr('height', params.cell.height)
     .style('fill', (d) -> colorScale(d.value))
 
   cells.exit().remove()
+
+  @colorScale = colorScale
+  @

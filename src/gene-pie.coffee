@@ -1,12 +1,14 @@
 d3.SpotMyGene.GenePie = (params, initialGenes) ->
 
   currentIds = []
-
+  console.log
   chart = c3.generate
     bindto: params.container
     data:
       columns: []
       type : 'pie'
+    color:
+      pattern: params.colors
       # onclick: (d, i) -> console.log("onclick", d, i)
       # onmouseover: (d, i) -> console.log("onmouseover", d, i)
       # onmouseout: (d, i) -> console.log("onmouseout", d, i)

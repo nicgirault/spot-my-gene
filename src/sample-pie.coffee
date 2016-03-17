@@ -7,9 +7,8 @@ d3.SpotMyGene.SamplePie = (params, initialSamples) ->
     data:
       columns: []
       type : 'pie'
-      # onclick: (d, i) -> console.log("onclick", d, i)
-      # onmouseover: (d, i) -> console.log("onmouseover", d, i)
-      # onmouseout: (d, i) -> console.log("onmouseout", d, i)
+    color:
+      pattern: params.colors
 
   render = (samples, accessor) ->
     nest = d3.nest()

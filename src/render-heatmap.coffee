@@ -34,12 +34,12 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .append('g')
     .attr('class', 'cells-group')
 
-  colorScale = d3.SpotMyGene.buildColorScale(data.cells)
-  legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
-  legend.render(colorScale)
-
   d3.SpotMyGene.renderDendogram svg, sampleRoot, data.samples, params
-  d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale)
+
+  heatmap = new d3.SpotMyGene.Heatmap(svg, cells, data.cells, params.heatmap, sampleScale, geneScale)
+
+  legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
+  legend.render(heatmap.colorScale)
 
   geneLabels = new d3.SpotMyGene.GeneLabels params, svg
   geneLabels.render data.genes
