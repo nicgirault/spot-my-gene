@@ -495,7 +495,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, i, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale;
+  var cells, colorScale, filterBySample, gene, geneIds, geneLabels, genePie, geneRoot, geneScale, i, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale;
   if (!data) {
     return;
   }
@@ -580,6 +580,40 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   samplePie = new d3.SpotMyGene.SamplePie(params.samplePie, data.samples);
   samplePie.render(data.samples, function(sample) {
     return sample.summary.sx;
+  });
+  genePie = new d3.SpotMyGene.GenePie(params.genePie, data.genes);
+  genePie.render(data.genes, function(gene) {
+    if (gene.id[gene.id.length - 1] === "1") {
+      return 'Protein coding';
+    }
+    if (gene.id[gene.id.length - 1] === "2") {
+      return 'Hormone';
+    }
+    if (gene.id[gene.id.length - 1] === "3") {
+      return 'Marker';
+    }
+    if (gene.id[gene.id.length - 1] === "4") {
+      return 'SiRNA';
+    }
+    if (gene.id[gene.id.length - 1] === "5") {
+      return 'Cell cycle';
+    }
+    if (gene.id[gene.id.length - 1] === "6") {
+      return 'Transcription factor';
+    }
+    if (gene.id[gene.id.length - 1] === "7") {
+      return 'Antigen';
+    }
+    if (gene.id[gene.id.length - 1] === "8") {
+      return 'Adhesion molecule';
+    }
+    if (gene.id[gene.id.length - 1] === "9") {
+      return 'Ribozyme';
+    }
+    if (gene.id[gene.id.length - 1] === "0") {
+      return 'Growth factor';
+    }
+    return "Unknown";
   });
   return d3.SpotMyGene.dispatch.renderEnd();
 };
@@ -876,6 +910,86 @@ d3.SpotMyGene.SamplePie = function(params, initialSamples) {
   d3.SpotMyGene.dispatch.on('updateSelectedSamples.samplePie', function(selectedSamples) {
     return render(selectedSamples, function(sample) {
       return sample.summary.sx;
+    });
+  });
+  this.render = render;
+  return this;
+};
+
+d3.SpotMyGene.GenePie = function(params, initialGenes) {
+  var chart, currentIds, render;
+  currentIds = [];
+  chart = c3.generate({
+    bindto: params.container,
+    data: {
+      columns: [],
+      type: 'pie'
+    }
+  });
+  render = function(genes, accessor) {
+    var elt, idsToUnload, nest, newIds;
+    nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(genes);
+    newIds = (function() {
+      var l, len, results;
+      results = [];
+      for (l = 0, len = nest.length; l < len; l++) {
+        elt = nest[l];
+        results.push(elt.key);
+      }
+      return results;
+    })();
+    idsToUnload = currentIds.filter(function(id) {
+      return indexOf.call(newIds, id) < 0;
+    });
+    chart.load({
+      columns: (function() {
+        var l, len, results;
+        results = [];
+        for (l = 0, len = nest.length; l < len; l++) {
+          elt = nest[l];
+          results.push([elt.key, elt.values.length]);
+        }
+        return results;
+      })()
+    });
+    chart.unload({
+      ids: idsToUnload
+    });
+    return currentIds = newIds;
+  };
+  d3.SpotMyGene.dispatch.on('updateSelectedGenes.pie', function(selectedGenes) {
+    return render(selectedGenes, function(gene, i) {
+      if (gene.id[gene.id.length - 1] === "1") {
+        return 'Protein coding';
+      }
+      if (gene.id[gene.id.length - 1] === "2") {
+        return 'Hormone';
+      }
+      if (gene.id[gene.id.length - 1] === "3") {
+        return 'Marker';
+      }
+      if (gene.id[gene.id.length - 1] === "4") {
+        return 'SiRNA';
+      }
+      if (gene.id[gene.id.length - 1] === "5") {
+        return 'Cell cycle';
+      }
+      if (gene.id[gene.id.length - 1] === "6") {
+        return 'Transcription factor';
+      }
+      if (gene.id[gene.id.length - 1] === "7") {
+        return 'Antigen';
+      }
+      if (gene.id[gene.id.length - 1] === "8") {
+        return 'Adhesion molecule';
+      }
+      if (gene.id[gene.id.length - 1] === "9") {
+        return 'Ribozyme';
+      }
+      if (gene.id[gene.id.length - 1] === "0") {
+        return 'Growth factor';
+      }
+      return "Unknown";
     });
   });
   this.render = render;

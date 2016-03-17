@@ -27,6 +27,7 @@ gulp.task 'compile', ->
     'src/heatmap.coffee'
     'src/legend.coffee'
     'src/sample-pie.coffee'
+    'src/gene-pie.coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true
