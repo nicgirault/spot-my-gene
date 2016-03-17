@@ -142,6 +142,7 @@ d3.selectable = function(ul, li, update) {
 
 d3.SpotMyGene = function(data, params) {
   var instance;
+  params = d3.SpotMyGene.Parameters(params);
   instance = new d3.SpotMyGene.Core(params);
   d3.SpotMyGene.preRender(params, data);
   return instance.render2(data, params);
@@ -168,6 +169,107 @@ d3.SpotMyGene.preRender = function(params, data) {
 d3.SpotMyGene.selectedSamples = [];
 
 d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd', 'updateSelectedSamples', 'updateSelectedGenes', 'genePieAccessorChanged');
+
+d3.SpotMyGene.Parameters = function(parameters) {
+  var defaults, merge;
+  defaults = {
+    container: '#chart',
+    width: 800,
+    maxHeight: 2000,
+    margins: {
+      left: 10,
+      top: 10
+    },
+    sampleLabels: {
+      length: 65,
+      showTooltips: true,
+      tooltipContent: function(d) {
+        var html, key, ref, value;
+        html = '<table class="c3-tooltip">';
+        ref = d.summary;
+        for (key in ref) {
+          value = ref[key];
+          html += '<tr><td>' + key + '</td><td> ' + value + '</td></tr>';
+        }
+        html += '</table>';
+        return html;
+      }
+    },
+    geneLabels: {
+      length: 100,
+      showTooltips: true,
+      tooltipContent: function(d) {
+        var html, key, ref, value;
+        html = '<ul>';
+        ref = d.metadata;
+        for (key in ref) {
+          value = ref[key];
+          html += '<li><b>' + key + '</b>: ' + value + '</li>';
+        }
+        html += '</ul>';
+        return html;
+      }
+    },
+    sampleDendogram: {
+      height: 200
+    },
+    geneDendogram: {
+      height: 200
+    },
+    heatmap: {
+      cell: {
+        height: 30
+      },
+      colors: ['#E75753', '#FEFEFE', '#009688']
+    },
+    enableZoom: false,
+    legend: {
+      container: '#legend',
+      width: 700,
+      height: 20,
+      size: 10,
+      labels: {
+        size: 9,
+        precision: 2,
+        color: '#444'
+      }
+    },
+    genePie: {
+      container: '#gene-pie',
+      colors: ['#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f'],
+      accessor: function(d, i, j) {
+        return 'No Accessor defined';
+      }
+    },
+    samplePie: {
+      container: '#sample-pie',
+      colors: d3.scale.category20().range()
+    }
+  };
+  merge = function(parameters, defaults) {
+    var key, value;
+    for (key in defaults) {
+      value = defaults[key];
+      if (key in parameters) {
+        if (Object.prototype.toString.call(value) === '[object Array]') {
+          defaults[key] = parameters[key];
+        } else if (typeof value === 'object') {
+          if ((value != null) && Object.keys(value).length === 0) {
+            defaults[key] = parameters[key];
+          } else {
+            defaults[key] = merge(parameters[key], value);
+          }
+        } else {
+          defaults[key] = parameters[key];
+        }
+      } else {
+        defaults[key] = value;
+      }
+    }
+    return defaults;
+  };
+  return merge(parameters, defaults);
+};
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
   var gene, geneByIds, l, len, ref;

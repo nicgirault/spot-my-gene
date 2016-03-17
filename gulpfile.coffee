@@ -12,6 +12,7 @@ gulp.task 'compile', ->
   gulp.src [
     'src/selectable.coffee'
     'src/spot-my-gene.coffee'
+    'src/parameters.coffee'
     'src/mouseover-gene.coffee'
     'src/mouseover-sample.coffee'
     'src/mouseover-cell.coffee'

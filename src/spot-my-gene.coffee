@@ -1,4 +1,5 @@
 d3.SpotMyGene = (data, params) ->
+  params = d3.SpotMyGene.Parameters params
   instance = new d3.SpotMyGene.Core params
   d3.SpotMyGene.preRender params, data
   instance.render2 data, params

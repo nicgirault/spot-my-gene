@@ -71,97 +71,12 @@ var genePieAccessorChange = function(value){
   d3.SpotMyGene.dispatch.genePieAccessorChanged(geneAccessors[value]);
 };
 
-var params;
-
-params = {
-  container: '#chart',
-  width: 800,
-  maxHeight: 2000,
-  margins: {
-    left: 10,
-    top: 10
-  },
-  sampleLabels: {
-    length: 65,
-    showTooltips: true,
-    tooltipContent: function(d) {
-      var html, key, ref, value;
-      html = '<table class="c3-tooltip">';
-      ref = d.summary;
-      for (key in ref) {
-        value = ref[key];
-        html += "<tr><td>" + key + "</td><td> " + value + "</td></tr>";
-      }
-      html += '</table>';
-      return html;
-    }
-  },
-  geneLabels: {
-    length: 100,
-    showTooltips: true,
-    tooltipContent: function(d) {
-      var html, key, ref, value;
-      html = '<ul>';
-      ref = d.metadata;
-      for (key in ref) {
-        value = ref[key];
-        html += "<li><b>" + key + "</b>: " + value + "</li>";
-      }
-      html += '</ul>';
-      return html;
-    }
-  },
-  sampleDendogram: {
-    height: 400
-  },
-  geneDendogram: {
-    height: 200
-  },
-  heatmap: {
-    cell: {
-      height: 30
-    },
-    colors: [
-      '#E75753',
-      '#FEFEFE',
-      '#009688',
-    ]
-  },
-  enableZoom: false,
-  legend: {
-    container: '#legend',
-    width: 700,
-    height: 20,
-    size: 10,
-    labels: {
-      size: 9,
-      precision: 2,
-      color: '#444'
-    }
-  },
+var params = {
   genePie: {
-    container: '#gene-pie',
-    colors: [
-      '#8dd3c7',
-      '#ffffb3',
-      '#bebada',
-      '#fb8072',
-      '#80b1d3',
-      '#fdb462',
-      '#b3de69',
-      '#fccde5',
-      '#d9d9d9',
-      '#bc80bd',
-      '#ccebc5',
-      '#ffed6f',
-    ],
     accessor: geneAccessors.type
-  },
-  samplePie: {
-    container: '#sample-pie',
-    colors: d3.scale.category20().range()
   }
 };
+
 
 d3.json('raw-data.json', function(data) {
   return async.map(data.st.samplesorder, function(sampleId, done) {
