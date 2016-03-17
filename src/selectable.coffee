@@ -66,10 +66,10 @@ d3.selectable = (ul, li, update) ->
     update()
     return
 
-  li.on 'mousedown', (d) ->
+  li.on 'mousedown.selectable', (d) ->
     select d, this
     return
-  li.on 'mouseover', (d) ->
+  li.on 'mouseover.selectable', (d) ->
     # dragging over items toggles selection
     if d3.event.which
       d._selected = lastDecision
@@ -81,7 +81,7 @@ d3.selectable = (ul, li, update) ->
     home: 36
     end: 35
     a: 65
-  ul.on 'keydown', ->
+  ul.on 'keydown.selectable', ->
     if d3.values(keyCodes).indexOf(d3.event.keyCode) == -1
       return
     if d3.event.keyCode == keyCodes.a and !d3.event.ctrlKey

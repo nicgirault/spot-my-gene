@@ -1,11 +1,3 @@
-d3.SpotMyGene.renderHeatmapAxes = (geneLabels, sampleLabels, geneScale, sampleScale, params, data) ->
-  sampleAxis = d3.svg.axis().orient('bottom')
-  sampleAxis.scale(sampleScale)
-  sampleLabels.call(sampleAxis)
-    .selectAll('text')
-    .attr('transform', "translate(#{params.heatmap.cell.width/2}, 0) rotate(-45)")
-    .style("text-anchor", "end")
-
 d3.SpotMyGene.renderHeatmapCells = (parentContainer, cells, cellsData, params, sampleScale, geneScale) ->
   colorScale = d3.SpotMyGene.buildColorScale(cellsData)
 

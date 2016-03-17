@@ -5,7 +5,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   sampleIds = (sample.id for sample in data.samples)
 
   sampleRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "col"), sampleIds)
-  samplesOrder = d3.SpotMyGene.getRange(data.samples, sampleRoot)
+  d3.SpotMyGene.sortByCluster(data.samples, sampleRoot)
 
   geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds)
   d3.SpotMyGene.sortByCluster(data.genes, geneRoot)
@@ -23,16 +23,12 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
       cell.sampleId in selectedIds
 
   sampleScale = d3.scale.ordinal()
-    .domain(sampleIds)
-    .range (idx * params.heatmap.cell.width for idx in samplesOrder)
+    .domain (sample.id for sample in data.samples)
+    .range (i * params.heatmap.cell.width for i of data.samples)
 
   geneScale = d3.scale.ordinal()
     .domain (gene.id for gene in data.genes)
     .range (i * params.heatmap.cell.height for i of data.genes)
-
-  sampleLabels = svg.select '.sample-labels'
-    .append('g')
-    .attr('class', 'x axis')
 
   cells = svg.select('.heatmap')
     .append('g')
@@ -42,24 +38,14 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
   legend.render(colorScale)
 
-  d3.SpotMyGene.dispatch.on 'updateSelectedSamples', (root, samples) ->
-    samplesOrder = d3.SpotMyGene.getRange(samples, root)
-    params.heatmap.cell.width = params.heatmap.width / samples.length
-    sampleScale = d3.scale.ordinal()
-      .domain (sample.name for sample in samples)
-      .range (idx * params.heatmap.cell.width for idx in samplesOrder)
-    # d3.SpotMyGene.renderDendogram svg, root, params
-
-    d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params, data)
-    cellsData = filterBySample(data.cells, samples)
-    d3.SpotMyGene.renderHeatmapCells(svg, cells, cellsData, params, sampleScale, geneScale)
-
   d3.SpotMyGene.renderDendogram svg, sampleRoot, params
-  d3.SpotMyGene.renderHeatmapAxes(geneLabels, sampleLabels, geneScale, sampleScale, params, data)
   d3.SpotMyGene.renderHeatmapCells(svg, cells, data.cells, params, sampleScale, geneScale)
 
-  geneLabels = d3.SpotMyGene.GeneLabels params, svg
+  geneLabels = new d3.SpotMyGene.GeneLabels params, svg
   geneLabels.render data.genes
+
+  sampleLabels = new d3.SpotMyGene.SampleLabels params, svg
+  sampleLabels.render data.samples
 
   samplePie = new d3.SpotMyGene.SamplePie(params.genePie, data.samples)
   samplePie.render data.samples, (sample) -> sample.summary.sx
