@@ -130,7 +130,7 @@ d3.SpotMyGene.sortByCluster = (elements, root) ->
   for elementIdx, element of elements
     for leafIdx, leaf of leaves
       if leaf.name is element.name
-        elements.idx = leafIdx
+        element.idx = parseInt(leafIdx)
         break
   elements.sort (a, b) ->
     d3.ascending a.idx, b.idx

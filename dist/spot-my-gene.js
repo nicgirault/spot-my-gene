@@ -212,14 +212,6 @@ d3.SpotMyGene.dispatch.on('cellMouseout', function(cell, d, i, j) {
   return d3.select(cell).classed('active', false);
 });
 
-d3.SpotMyGene.buildColorScale = function(cells) {
-  var colors;
-  colors = ['#005824', '#1A693B', '#347B53', '#4F8D6B', '#699F83', '#83B09B', '#9EC2B3', '#B8D4CB', '#D2E6E3', '#EDF8FB', '#FFFFFF', '#F1EEF6', '#E6D3E1', '#DBB9CD', '#D19EB9', '#C684A4', '#BB6990', '#B14F7C', '#A63467', '#9B1A53', '#91003F'];
-  return d3.scale.quantile().domain(d3.extent(cells, function(cell) {
-    return cell.value;
-  })).range(colors);
-};
-
 d3.SpotMyGene.SampleLabels = function(params, parentElement) {
   var render, sampleLabels, updateSelected;
   sampleLabels = parentElement.select('.sample-labels').append('g').attr('class', 'x axis');
@@ -484,7 +476,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root) {
     for (leafIdx in leaves) {
       leaf = leaves[leafIdx];
       if (leaf.name === element.name) {
-        elements.idx = leafIdx;
+        element.idx = parseInt(leafIdx);
         break;
       }
     }
