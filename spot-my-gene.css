@@ -1,5 +1,8 @@
 .spot-my-gene text {
   cursor: default;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  user-select: none;
 }
 .spot-my-gene text.selected {
   fill: #3F51B5;
