@@ -1,15 +1,15 @@
 module.exports = (config) ->
   config.set
-    frameworks: []
+    frameworks: ['mocha', 'chai', 'sinon']
     files: [
       'bower_components/d3/d3.js'
+      'bower_components/c3/c3.js'
       'src/**/*.coffee'
-      'test/**/*.coffee'
     ]
     exclude: []
     preprocessors:
       '**/*.coffee': ['coffee']
-      'src/**/*.coffee': ['coverage']
+      '**/!(*test).coffee': ['coverage']
     coverageReporter:
       dir: 'coverage'
       reporters: [
@@ -23,7 +23,7 @@ module.exports = (config) ->
         functions: [70, 80]
         branches: [70, 80]
         lines: [70, 80]
-    reporters: [ 'progress' , 'coverage' ]
+    reporters: [ 'spec', 'coverage' ]
     port: 9876
     colors: true
     logLevel: config.LOG_INFO

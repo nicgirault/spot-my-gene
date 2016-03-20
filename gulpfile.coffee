@@ -10,8 +10,8 @@ deploy = require 'gulp-gh-pages'
 
 gulp.task 'compile', ->
   gulp.src [
+    'src/0-module.coffee'
     'src/selectable.coffee'
-    'src/spot-my-gene.coffee'
     'src/parameters.coffee'
     'src/mouseover-gene.coffee'
     'src/mouseover-sample.coffee'
