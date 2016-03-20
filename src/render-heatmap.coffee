@@ -47,10 +47,4 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   sampleLabels = new d3.SpotMyGene.SampleLabels params, svg
   sampleLabels.render data.samples
 
-  samplePie = new d3.SpotMyGene.SamplePie(params.samplePie, data.samples)
-  samplePie.render data.samples, (sample) -> sample.summary.sx
-
-  genePie = new d3.SpotMyGene.GenePie(params.genePie, data.genes)
-  genePie.render data.genes, params.genePie.accessor
-
   d3.SpotMyGene.dispatch.renderEnd()

@@ -171,7 +171,7 @@ d3.SpotMyGene.selectedSamples = [];
 d3.SpotMyGene.dispatch = d3.dispatch('geneMouseover', 'sampleMouseover', 'geneMouseout', 'sampleMouseout', 'cellMouseover', 'cellMouseout', 'cellMouseout', 'renderEnd', 'updateSelectedSamples', 'updateSelectedGenes', 'genePieAccessorChanged');
 
 d3.SpotMyGene.Parameters = function(parameters) {
-  var defaults, merge;
+  var defaults;
   defaults = {
     container: '#chart',
     width: 800,
@@ -233,42 +233,9 @@ d3.SpotMyGene.Parameters = function(parameters) {
         precision: 2,
         color: '#444'
       }
-    },
-    genePie: {
-      container: '#gene-pie',
-      colors: ['#8dd3c7', '#ffffb3', '#bebada', '#fb8072', '#80b1d3', '#fdb462', '#b3de69', '#fccde5', '#d9d9d9', '#bc80bd', '#ccebc5', '#ffed6f'],
-      accessor: function(d, i, j) {
-        return 'No Accessor defined';
-      }
-    },
-    samplePie: {
-      container: '#sample-pie',
-      colors: d3.scale.category20().range()
     }
   };
-  merge = function(parameters, defaults) {
-    var key, value;
-    for (key in defaults) {
-      value = defaults[key];
-      if (key in parameters) {
-        if (Object.prototype.toString.call(value) === '[object Array]') {
-          defaults[key] = parameters[key];
-        } else if (typeof value === 'object') {
-          if ((value != null) && Object.keys(value).length === 0) {
-            defaults[key] = parameters[key];
-          } else {
-            defaults[key] = merge(parameters[key], value);
-          }
-        } else {
-          defaults[key] = parameters[key];
-        }
-      } else {
-        defaults[key] = value;
-      }
-    }
-    return defaults;
-  };
-  return merge(parameters, defaults);
+  return d3.SpotMyGene.defaults(parameters, defaults);
 };
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
@@ -589,7 +556,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, filterBySample, gene, geneIds, geneLabels, genePie, geneRoot, geneScale, heatmap, i, legend, sample, sampleIds, sampleLabels, samplePie, sampleRoot, sampleScale;
+  var cells, filterBySample, gene, geneIds, geneLabels, geneRoot, geneScale, heatmap, i, legend, sample, sampleIds, sampleLabels, sampleRoot, sampleScale;
   if (!data) {
     return;
   }
@@ -670,12 +637,6 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   geneLabels.render(data.genes);
   sampleLabels = new d3.SpotMyGene.SampleLabels(params, svg);
   sampleLabels.render(data.samples);
-  samplePie = new d3.SpotMyGene.SamplePie(params.samplePie, data.samples);
-  samplePie.render(data.samples, function(sample) {
-    return sample.summary.sx;
-  });
-  genePie = new d3.SpotMyGene.GenePie(params.genePie, data.genes);
-  genePie.render(data.genes, params.genePie.accessor);
   return d3.SpotMyGene.dispatch.renderEnd();
 };
 
@@ -941,9 +902,20 @@ d3.SpotMyGene.HeatmapLegend = function(params) {
   return this;
 };
 
-d3.SpotMyGene.SamplePie = function(params, initialSamples) {
-  var chart, currentIds, render;
+d3.SpotMyGene.pieCount = 0;
+
+d3.SpotMyGene.Pie = function(params) {
+  var chart, currentIds, defaultParams, render;
+  defaultParams = {
+    container: '',
+    colors: d3.scale.category20().range()
+  };
+  params = d3.SpotMyGene.defaults(params, defaultParams);
+  this.id = d3.SpotMyGene.pieCount;
+  d3.SpotMyGene.pieCount++;
   currentIds = [];
+  this.selectedObjectsBuffer = null;
+  this.accessorBuffer = null;
   chart = c3.generate({
     bindto: params.container,
     data: {
@@ -954,100 +926,94 @@ d3.SpotMyGene.SamplePie = function(params, initialSamples) {
       pattern: params.colors
     }
   });
-  render = function(samples, accessor) {
-    var elt, idsToUnload, nest, newIds;
-    nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(samples);
-    newIds = (function() {
-      var l, len, results;
-      results = [];
-      for (l = 0, len = nest.length; l < len; l++) {
-        elt = nest[l];
-        results.push(elt.key);
-      }
-      return results;
-    })();
-    idsToUnload = currentIds.filter(function(id) {
-      return indexOf.call(newIds, id) < 0;
-    });
-    chart.load({
-      columns: (function() {
+  render = (function(_this) {
+    return function(objects, accessor) {
+      var elt, idsToUnload, nest, newIds;
+      _this.selectedObjectsBuffer = objects;
+      _this.accessorBuffer = accessor;
+      nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(objects);
+      newIds = (function() {
         var l, len, results;
         results = [];
         for (l = 0, len = nest.length; l < len; l++) {
           elt = nest[l];
-          results.push([elt.key, elt.values.length]);
+          results.push(elt.key);
         }
         return results;
-      })()
-    });
-    chart.unload({
-      ids: idsToUnload
-    });
-    return currentIds = newIds;
-  };
-  d3.SpotMyGene.dispatch.on('updateSelectedSamples.samplePie', function(selectedSamples) {
-    return render(selectedSamples, function(sample) {
-      return sample.summary.sx;
-    });
-  });
+      })();
+      idsToUnload = currentIds.filter(function(id) {
+        return indexOf.call(newIds, id) < 0;
+      });
+      chart.load({
+        columns: (function() {
+          var l, len, results;
+          results = [];
+          for (l = 0, len = nest.length; l < len; l++) {
+            elt = nest[l];
+            results.push([elt.key, elt.values.length]);
+          }
+          return results;
+        })()
+      });
+      chart.unload({
+        ids: idsToUnload
+      });
+      return currentIds = newIds;
+    };
+  })(this);
+  this.dispatch = d3.dispatch('accessorChanged');
+  this.dispatch.on('accessorChanged', (function(_this) {
+    return function(accessor) {
+      _this.accessorBuffer = accessor;
+      return _this.render(_this.selectedObjectsBuffer, accessor);
+    };
+  })(this));
   this.render = render;
   return this;
 };
 
-d3.SpotMyGene.GenePie = function(params, initialGenes) {
-  var accessorBuffer, chart, currentIds, render, selectedGenesBuffer;
-  currentIds = [];
-  selectedGenesBuffer = initialGenes;
-  accessorBuffer = params.accessor;
-  chart = c3.generate({
-    bindto: params.container,
-    data: {
-      columns: [],
-      type: 'pie'
-    },
-    color: {
-      pattern: params.colors
-    }
-  });
-  render = function(genes, accessor) {
-    var elt, idsToUnload, nest, newIds;
-    nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(genes);
-    newIds = (function() {
-      var l, len, results;
-      results = [];
-      for (l = 0, len = nest.length; l < len; l++) {
-        elt = nest[l];
-        results.push(elt.key);
-      }
-      return results;
-    })();
-    idsToUnload = currentIds.filter(function(id) {
-      return indexOf.call(newIds, id) < 0;
-    });
-    chart.load({
-      columns: (function() {
-        var l, len, results;
-        results = [];
-        for (l = 0, len = nest.length; l < len; l++) {
-          elt = nest[l];
-          results.push([elt.key, elt.values.length]);
-        }
-        return results;
-      })()
-    });
-    chart.unload({
-      ids: idsToUnload
-    });
-    return currentIds = newIds;
-  };
-  d3.SpotMyGene.dispatch.on('updateSelectedGenes.pie', function(selectedGenes) {
-    selectedGenesBuffer = selectedGenes;
-    return render(selectedGenes, accessorBuffer);
-  });
-  d3.SpotMyGene.dispatch.on('genePieAccessorChanged.pie', function(accessor) {
-    accessorBuffer = accessor;
-    return render(selectedGenesBuffer, accessor);
-  });
-  this.render = render;
+d3.SpotMyGene.SamplePie = function(params) {
+  d3.SpotMyGene.Pie.call(this, params);
+  d3.SpotMyGene.dispatch.on("updateSelectedSamples.pie" + this.id, (function(_this) {
+    return function(selectedGenes) {
+      _this.selectedObjectsBuffer = selectedGenes;
+      return _this.render(selectedGenes, _this.accessorBuffer);
+    };
+  })(this));
   return this;
+};
+
+d3.SpotMyGene.GenePie = function(params) {
+  d3.SpotMyGene.Pie.call(this, params);
+  d3.SpotMyGene.dispatch.on("updateSelectedGenes.pie" + this.id, (function(_this) {
+    return function(selectedGenes) {
+      _this.selectedObjectsBuffer = selectedGenes;
+      return _this.render(selectedGenes, _this.accessorBuffer);
+    };
+  })(this));
+  return this;
+};
+
+d3.SpotMyGene.defaults = function(parameters, defaults) {
+  var key, toReturn, value;
+  toReturn = {};
+  for (key in defaults) {
+    value = defaults[key];
+    if (key in parameters) {
+      if (Object.prototype.toString.call(value) === '[object Array]') {
+        toReturn[key] = parameters[key];
+      } else if (typeof value === 'object') {
+        if ((value != null) && Object.keys(value).length === 0) {
+          toReturn[key] = parameters[key];
+        } else {
+          toReturn[key] = d3.SpotMyGene.defaults(parameters[key], value);
+        }
+      } else {
+        toReturn[key] = parameters[key];
+      }
+    } else {
+      toReturn[key] = value;
+    }
+  }
+  return toReturn;
 };
