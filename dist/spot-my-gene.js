@@ -285,6 +285,26 @@ d3.SpotMyGene.dispatch.on('cellMouseout', function(cell, d, i, j) {
 d3.SpotMyGene.SampleLabels = function(params, parentElement) {
   var render, sampleLabels, updateSelected;
   sampleLabels = parentElement.select('.sample-labels').append('g').attr('class', 'x axis');
+  d3.SpotMyGene.dispatch.on('updateSelectedSamples.labels', function(selectedSamples, fromLabel) {
+    var gene, ids;
+    ids = (function() {
+      var l, len, results;
+      results = [];
+      for (l = 0, len = selectedSamples.length; l < len; l++) {
+        gene = selectedSamples[l];
+        results.push(gene.id);
+      }
+      return results;
+    })();
+    if (!fromLabel) {
+      return sampleLabels.selectAll('text').each(function(d) {
+        var ref;
+        return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
+      }).classed('selected', function(d) {
+        return d._selected;
+      });
+    }
+  });
   updateSelected = function() {
     var selectedSamples;
     sampleLabels.selectAll('text').classed('selected', function(d) {
@@ -293,7 +313,7 @@ d3.SpotMyGene.SampleLabels = function(params, parentElement) {
     selectedSamples = sampleLabels.selectAll('text').data().filter(function(sample) {
       return sample._selected;
     });
-    return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples);
+    return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples, true);
   };
   render = function(samples) {
     var selection;
@@ -321,6 +341,26 @@ d3.SpotMyGene.SampleLabels = function(params, parentElement) {
 d3.SpotMyGene.GeneLabels = function(params, parentElement) {
   var geneLabels, render, updateSelected;
   geneLabels = parentElement.select('.gene-labels').append('g').attr('class', 'y axis').attr('transform', "translate(0, " + (params.heatmap.cell.height / 2) + ")");
+  d3.SpotMyGene.dispatch.on('updateSelectedGenes.labels', function(selectedGenes, fromLabel) {
+    var gene, ids;
+    ids = (function() {
+      var l, len, results;
+      results = [];
+      for (l = 0, len = selectedGenes.length; l < len; l++) {
+        gene = selectedGenes[l];
+        results.push(gene.id);
+      }
+      return results;
+    })();
+    if (!fromLabel) {
+      return geneLabels.selectAll('text').each(function(d) {
+        var ref;
+        return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
+      }).classed('selected', function(d) {
+        return d._selected;
+      });
+    }
+  });
   updateSelected = function() {
     var selectedGenes;
     geneLabels.selectAll('text').classed('selected', function(d) {
@@ -329,7 +369,7 @@ d3.SpotMyGene.GeneLabels = function(params, parentElement) {
     selectedGenes = geneLabels.selectAll('text').data().filter(function(gene) {
       return gene._selected;
     });
-    return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes);
+    return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, true);
   };
   render = function(genes) {
     var selection;

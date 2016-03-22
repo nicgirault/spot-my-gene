@@ -4,6 +4,13 @@ d3.SpotMyGene.SampleLabels = (params, parentElement) ->
     .append 'g'
     .attr 'class', 'x axis'
 
+  d3.SpotMyGene.dispatch.on 'updateSelectedSamples.labels', (selectedSamples, fromLabel) ->
+    ids = (gene.id for gene in selectedSamples)
+    unless fromLabel
+      sampleLabels.selectAll 'text'
+        .each (d) -> d._selected = d.id in ids
+        .classed 'selected', (d) -> d._selected
+
   updateSelected = ->
     sampleLabels.selectAll 'text'
       .classed 'selected', (d) -> d._selected
@@ -12,7 +19,7 @@ d3.SpotMyGene.SampleLabels = (params, parentElement) ->
       .data()
       .filter (sample) -> sample._selected
 
-    d3.SpotMyGene.dispatch.updateSelectedSamples selectedSamples
+    d3.SpotMyGene.dispatch.updateSelectedSamples selectedSamples, true
 
   render = (samples) ->
     selection = sampleLabels.selectAll 'text'
@@ -47,6 +54,13 @@ d3.SpotMyGene.GeneLabels = (params, parentElement) ->
     .attr 'class', 'y axis'
     .attr 'transform', "translate(0, #{params.heatmap.cell.height / 2})"
 
+  d3.SpotMyGene.dispatch.on 'updateSelectedGenes.labels', (selectedGenes, fromLabel) ->
+    ids = (gene.id for gene in selectedGenes)
+    unless fromLabel
+      geneLabels.selectAll 'text'
+        .each (d) -> d._selected = d.id in ids
+        .classed 'selected', (d) -> d._selected
+
   updateSelected = ->
     geneLabels.selectAll 'text'
       .classed 'selected', (d) -> d._selected
@@ -55,7 +69,7 @@ d3.SpotMyGene.GeneLabels = (params, parentElement) ->
       .data()
       .filter (gene) -> gene._selected
 
-    d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes
+    d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes, true
 
   render = (genes) ->
     selection = geneLabels.selectAll 'text'
