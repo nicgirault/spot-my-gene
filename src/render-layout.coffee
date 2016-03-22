@@ -12,6 +12,7 @@ d3.SpotMyGene.Core.prototype.render2 = (data, params) ->
 
   svg.append 'g'
     .attr 'class', 'gene-dendogram'
+    .attr 'transform', "translate(#{params.margins.left}, #{params.sampleLabels.length + params.sampleDendogram.height + params.heatmap.height + params.heatmap.cell.height/2}) rotate(-90)"
 
   heatmap = svg.append 'g'
     .attr 'class', 'heatmap-with-labels'

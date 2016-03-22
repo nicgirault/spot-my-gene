@@ -25,8 +25,10 @@ d3.SpotMyGene.Parameters = (parameters) ->
           html += '<li><b>' + key + '</b>: ' + value + '</li>'
         html += '</ul>'
         html
-    sampleDendogram: height: 200
-    geneDendogram: height: 200
+    sampleDendogram:
+      height: 200
+    geneDendogram:
+      height: 200
     heatmap:
       cell:
         height: 30

@@ -1,9 +1,6 @@
-d3.SpotMyGene.renderDendogram = (svg, tree, samples, params) ->
-  width = params.sampleDendogram.width
-  height = params.sampleDendogram.height
-
+d3.SpotMyGene.Dendogram = (svg, params) ->
   cluster = d3.layout.cluster()
-    .size [width, height]
+    .size [params.width, params.height]
 
   line = d3.svg.line()
     .x (d) -> d.x
@@ -17,35 +14,29 @@ d3.SpotMyGene.renderDendogram = (svg, tree, samples, params) ->
     ]
     line points
 
-  nodes = cluster.nodes tree
-  links = cluster.links nodes
-  leaves = nodes.filter (node) -> not node.children?
+  @_render = (container, root) ->
+    nodes = cluster.nodes root
+    links = cluster.links nodes
+    leaves = nodes.filter (node) -> not node.children?
+    d3.SpotMyGene.resizeTree params.width, params.height, leaves.length, nodes[0]
 
-  d3.SpotMyGene.resizeTree width, height, leaves.length, nodes[0]
+    selection = container
+      .selectAll '.link'
+      .data links
 
-  svg.select '.sample-dendogram'
-    .selectAll '.link'
-    .remove()
+    selection.exit().remove()
 
-  link = svg.select '.sample-dendogram'
-    .selectAll '.link'
-    .data links
+    selection.enter()
+      .append 'path'
+      .attr 'class', 'link'
+      .attr 'd', lineData
+      .on 'mouseover', (d) ->
+        d3.SpotMyGene.addSubTreeClass d, nodes, selection, 'highlight'
+      .on 'mouseout', (d) ->
+        d3.SpotMyGene.removeSubTreeClass nodes, selection, 'highlight'
 
-  link.enter()
-    .append 'path'
-    .attr 'class', 'link'
-    .attr 'd', lineData
-    .on 'click', (d) ->
-      selectedLeaves = d3.SpotMyGene.leaves(d.source)
-      d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'active')
-      names = (leaf.name for leaf in selectedLeaves)
-      selectedSamples = samples.filter (sample) ->
-        sample.id in names
-      d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples)
-    .on 'mouseover', (d) ->
-      d3.SpotMyGene.addSubTreeClass(d, nodes, link, 'highlight')
-    .on 'mouseout', (d) ->
-      d3.SpotMyGene.removeSubTreeClass(nodes, link, 'highlight')
+    [selection, nodes]
+  @
 
 d3.SpotMyGene.resizeTree = (width, height, leavesNumber, root) ->
   cellWidth = width / leavesNumber
