@@ -3,7 +3,7 @@ d3.SpotMyGene.GeneDendogram = (svg, params) ->
 
   @render = (root, genes) =>
     container = svg.select '.gene-dendogram'
-    
+
     [selection, nodes] = @_render container, root
 
     selection.on 'click', (d) ->
@@ -12,5 +12,9 @@ d3.SpotMyGene.GeneDendogram = (svg, params) ->
       names = (leaf.name for leaf in selectedLeaves)
       selectedGenes = genes.filter (gene) ->
         gene.id in names
-      d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes
+      d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes, 'dendogram'
+
+    d3.SpotMyGene.dispatch.on 'updateSelectedGenes.dendogram', (selectedGenes, source) ->
+      unless source is 'dendogram'
+        d3.SpotMyGene.removeSubTreeClass(root, selection, 'active')
   @

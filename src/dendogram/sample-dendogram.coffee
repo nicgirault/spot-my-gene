@@ -12,4 +12,8 @@ d3.SpotMyGene.SampleDendogram = (svg, params) ->
       selectedSamples = samples.filter (sample) ->
         sample.id in names
       d3.SpotMyGene.dispatch.updateSelectedSamples selectedSamples
+
+    d3.SpotMyGene.dispatch.on 'updateSelectedSamples.dendogram', (selectedSamples, source) ->
+      unless source is 'dendogram'
+        d3.SpotMyGene.removeSubTreeClass(root, selection, 'active')
   @

@@ -798,7 +798,7 @@ d3.SpotMyGene.SampleDendogram = function(svg, params) {
       var container, nodes, ref, selection;
       container = svg.select('.sample-dendogram');
       ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
-      return selection.on('click', function(d) {
+      selection.on('click', function(d) {
         var leaf, names, selectedLeaves, selectedSamples;
         selectedLeaves = d3.SpotMyGene.leaves(d.source);
         d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
@@ -817,6 +817,11 @@ d3.SpotMyGene.SampleDendogram = function(svg, params) {
         });
         return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples);
       });
+      return d3.SpotMyGene.dispatch.on('updateSelectedSamples.dendogram', function(selectedSamples, source) {
+        if (source !== 'dendogram') {
+          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
+        }
+      });
     };
   })(this);
   return this;
@@ -829,7 +834,7 @@ d3.SpotMyGene.GeneDendogram = function(svg, params) {
       var container, nodes, ref, selection;
       container = svg.select('.gene-dendogram');
       ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
-      return selection.on('click', function(d) {
+      selection.on('click', function(d) {
         var leaf, names, selectedGenes, selectedLeaves;
         selectedLeaves = d3.SpotMyGene.leaves(d.source);
         d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
@@ -846,7 +851,12 @@ d3.SpotMyGene.GeneDendogram = function(svg, params) {
           var ref1;
           return ref1 = gene.id, indexOf.call(names, ref1) >= 0;
         });
-        return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes);
+        return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, 'dendogram');
+      });
+      return d3.SpotMyGene.dispatch.on('updateSelectedGenes.dendogram', function(selectedGenes, source) {
+        if (source !== 'dendogram') {
+          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
+        }
       });
     };
   })(this);
