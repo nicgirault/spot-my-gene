@@ -18,6 +18,8 @@ d3.SpotMyGene.preRender = (params, data) ->
     params.heatmap.cell.height = params.maxHeight / data.genes.length
   params.heatmap.height = params.heatmap.cell.height * data.genes.length
 
+  params.geneDendogram.width = params.heatmap.height
+
   d3.SpotMyGene.varianceScaling data.cells
 
 d3.SpotMyGene.selectedSamples = []

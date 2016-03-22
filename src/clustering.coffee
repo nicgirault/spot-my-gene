@@ -112,20 +112,9 @@ d3.SpotMyGene.leaves = (root) ->
   getName root
   leaves
 
-# deprecated
-d3.SpotMyGene.getRange = (elements, root) ->
+d3.SpotMyGene.sortByCluster = (elements, root, reverse) ->
   leaves = d3.SpotMyGene.leaves root
-
-  range = []
-  for elementIdx, element of elements
-    for leafIdx, leaf of leaves
-      if leaf.name is element.name
-        range.push parseInt(leafIdx)
-        break
-  range
-
-d3.SpotMyGene.sortByCluster = (elements, root) ->
-  leaves = d3.SpotMyGene.leaves root
+  leaves.reverse() if reverse
 
   for elementIdx, element of elements
     for leafIdx, leaf of leaves

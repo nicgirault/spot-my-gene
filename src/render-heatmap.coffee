@@ -8,7 +8,7 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   d3.SpotMyGene.sortByCluster(data.samples, sampleRoot)
 
   geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds)
-  d3.SpotMyGene.sortByCluster(data.genes, geneRoot)
+  d3.SpotMyGene.sortByCluster(data.genes, geneRoot, true)
 
   # zoom = d3.behavior.zoom()
   #   .scaleExtent([1, 8])
@@ -34,7 +34,11 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .append('g')
     .attr('class', 'cells-group')
 
-  d3.SpotMyGene.renderDendogram svg, sampleRoot, data.samples, params
+  sampleDendogram = new d3.SpotMyGene.SampleDendogram svg, params.sampleDendogram
+  sampleDendogram.render sampleRoot, data.samples
+
+  geneDendogram = new d3.SpotMyGene.GeneDendogram svg, params.geneDendogram
+  geneDendogram.render geneRoot, data.genes
 
   heatmap = new d3.SpotMyGene.Heatmap(svg, cells, data.cells, params.heatmap, sampleScale, geneScale)
 

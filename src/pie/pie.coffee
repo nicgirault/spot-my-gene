@@ -1,4 +1,4 @@
-d3.SpotMyGene.pieCount = 0
+d3.SpotMyGene._pieCount = 0
 
 d3.SpotMyGene.Pie = (params) ->
   defaultParams =
@@ -7,8 +7,8 @@ d3.SpotMyGene.Pie = (params) ->
 
   params = d3.SpotMyGene.defaults params, defaultParams
 
-  @id = d3.SpotMyGene.pieCount
-  d3.SpotMyGene.pieCount++
+  @id = d3.SpotMyGene._pieCount
+  d3.SpotMyGene._pieCount++
 
   currentIds = []
   @selectedObjectsBuffer = null
