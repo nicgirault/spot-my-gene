@@ -686,183 +686,6 @@ d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
   return this.render(svg, data, params);
 };
 
-d3.SpotMyGene.Dendogram = function(svg, params) {
-  var cluster, line, lineData;
-  cluster = d3.layout.cluster().size([params.width, params.height]);
-  line = d3.svg.line().x(function(d) {
-    return d.x;
-  }).y(function(d) {
-    return d.y;
-  });
-  lineData = function(d, i, j) {
-    var points;
-    points = [
-      {
-        x: d.source.x,
-        y: d.source.y
-      }, {
-        x: d.target.x,
-        y: d.source.y
-      }, {
-        x: d.target.x,
-        y: d.target.y
-      }
-    ];
-    return line(points);
-  };
-  this._render = function(container, root) {
-    var leaves, links, nodes, selection;
-    nodes = cluster.nodes(root);
-    links = cluster.links(nodes);
-    leaves = nodes.filter(function(node) {
-      return node.children == null;
-    });
-    d3.SpotMyGene.resizeTree(params.width, params.height, leaves.length, nodes[0]);
-    selection = container.selectAll('.link').data(links);
-    selection.exit().remove();
-    selection.enter().append('path').attr('class', 'link').attr('d', lineData).on('mouseover', function(d) {
-      return d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'highlight');
-    }).on('mouseout', function(d) {
-      return d3.SpotMyGene.removeSubTreeClass(nodes, selection, 'highlight');
-    });
-    return [selection, nodes];
-  };
-  return this;
-};
-
-d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
-  var cellWidth, computeY, index, setNodeSize;
-  cellWidth = width / leavesNumber;
-  index = 0;
-  computeY = function(value) {
-    return height * (1 - value / root.value);
-  };
-  setNodeSize = function(node) {
-    var child, l, len, ref;
-    if (node.children == null) {
-      node.x = cellWidth * index + cellWidth / 2;
-      index++;
-    } else {
-      ref = node.children;
-      for (l = 0, len = ref.length; l < len; l++) {
-        child = ref[l];
-        setNodeSize(child);
-      }
-      if (node.children.length === 1) {
-        node.x = node.children[0].x;
-      } else {
-        node.x = (node.children[0].x + node.children[1].x) / 2;
-      }
-    }
-    if (node.value != null) {
-      return node.y = computeY(node.value);
-    } else {
-      return node.y = height;
-    }
-  };
-  return setNodeSize(root);
-};
-
-d3.SpotMyGene.addSubTreeClass = function(d, nodes, link, className) {
-  var classChildNodes, l, len, node;
-  for (l = 0, len = nodes.length; l < len; l++) {
-    node = nodes[l];
-    node[className] = false;
-  }
-  classChildNodes = function(node) {
-    node[className] = true;
-    if (node.children != null) {
-      classChildNodes(node.children[0]);
-      return classChildNodes(node.children[1]);
-    }
-  };
-  classChildNodes(d.source);
-  return link.classed(className, function(d) {
-    return d.target[className];
-  });
-};
-
-d3.SpotMyGene.removeSubTreeClass = function(nodes, link, className) {
-  var l, len, node;
-  for (l = 0, len = nodes.length; l < len; l++) {
-    node = nodes[l];
-    node[className] = false;
-  }
-  return link.classed(className, false);
-};
-
-d3.SpotMyGene.SampleDendogram = function(svg, params) {
-  d3.SpotMyGene.Dendogram.call(this, svg, params);
-  this.render = (function(_this) {
-    return function(root, samples) {
-      var container, nodes, ref, selection;
-      container = svg.select('.sample-dendogram');
-      ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
-      selection.on('click', function(d) {
-        var leaf, names, selectedLeaves, selectedSamples;
-        selectedLeaves = d3.SpotMyGene.leaves(d.source);
-        d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
-        names = (function() {
-          var l, len, results;
-          results = [];
-          for (l = 0, len = selectedLeaves.length; l < len; l++) {
-            leaf = selectedLeaves[l];
-            results.push(leaf.name);
-          }
-          return results;
-        })();
-        selectedSamples = samples.filter(function(sample) {
-          var ref1;
-          return ref1 = sample.id, indexOf.call(names, ref1) >= 0;
-        });
-        return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples);
-      });
-      return d3.SpotMyGene.dispatch.on('updateSelectedSamples.dendogram', function(selectedSamples, source) {
-        if (source !== 'dendogram') {
-          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
-        }
-      });
-    };
-  })(this);
-  return this;
-};
-
-d3.SpotMyGene.GeneDendogram = function(svg, params) {
-  d3.SpotMyGene.Dendogram.call(this, svg, params);
-  this.render = (function(_this) {
-    return function(root, genes) {
-      var container, nodes, ref, selection;
-      container = svg.select('.gene-dendogram');
-      ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
-      selection.on('click', function(d) {
-        var leaf, names, selectedGenes, selectedLeaves;
-        selectedLeaves = d3.SpotMyGene.leaves(d.source);
-        d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
-        names = (function() {
-          var l, len, results;
-          results = [];
-          for (l = 0, len = selectedLeaves.length; l < len; l++) {
-            leaf = selectedLeaves[l];
-            results.push(leaf.name);
-          }
-          return results;
-        })();
-        selectedGenes = genes.filter(function(gene) {
-          var ref1;
-          return ref1 = gene.id, indexOf.call(names, ref1) >= 0;
-        });
-        return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, 'dendogram');
-      });
-      return d3.SpotMyGene.dispatch.on('updateSelectedGenes.dendogram', function(selectedGenes, source) {
-        if (source !== 'dendogram') {
-          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
-        }
-      });
-    };
-  })(this);
-  return this;
-};
-
 d3.SpotMyGene.varianceScaling = function(cells) {
   var cell, deviation, geneCells, l, len, mean, nest, results;
   nest = d3.nest().key(function(cell) {
@@ -989,21 +812,232 @@ d3.SpotMyGene.HeatmapLegend = function(params) {
   return this;
 };
 
+d3.SpotMyGene.Dendogram = function(svg, params) {
+  var cluster, line, lineData;
+  cluster = d3.layout.cluster().size([params.width, params.height]);
+  line = d3.svg.line().x(function(d) {
+    return d.x;
+  }).y(function(d) {
+    return d.y;
+  });
+  lineData = function(d, i, j) {
+    var points;
+    points = [
+      {
+        x: d.source.x,
+        y: d.source.y
+      }, {
+        x: d.target.x,
+        y: d.source.y
+      }, {
+        x: d.target.x,
+        y: d.target.y
+      }
+    ];
+    return line(points);
+  };
+  this._render = function(container, root) {
+    var leaves, links, nodes, selection;
+    nodes = cluster.nodes(root);
+    links = cluster.links(nodes);
+    leaves = nodes.filter(function(node) {
+      return node.children == null;
+    });
+    d3.SpotMyGene.resizeTree(params.width, params.height, leaves.length, nodes[0]);
+    selection = container.selectAll('.link').data(links);
+    selection.exit().remove();
+    selection.enter().append('path').attr('class', 'link').attr('d', lineData).on('mouseover', function(d) {
+      return d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'highlight');
+    }).on('mouseout', function(d) {
+      return d3.SpotMyGene.removeSubTreeClass(nodes, selection, 'highlight');
+    });
+    return [selection, nodes];
+  };
+  return this;
+};
+
+d3.SpotMyGene.resizeTree = function(width, height, leavesNumber, root) {
+  var cellWidth, computeY, index, setNodeSize;
+  cellWidth = width / leavesNumber;
+  index = 0;
+  computeY = function(value) {
+    return height * (1 - value / root.value);
+  };
+  setNodeSize = function(node) {
+    var child, l, len, ref;
+    if (node.children == null) {
+      node.x = cellWidth * index + cellWidth / 2;
+      index++;
+    } else {
+      ref = node.children;
+      for (l = 0, len = ref.length; l < len; l++) {
+        child = ref[l];
+        setNodeSize(child);
+      }
+      if (node.children.length === 1) {
+        node.x = node.children[0].x;
+      } else {
+        node.x = (node.children[0].x + node.children[1].x) / 2;
+      }
+    }
+    if (node.value != null) {
+      return node.y = computeY(node.value);
+    } else {
+      return node.y = height;
+    }
+  };
+  return setNodeSize(root);
+};
+
+d3.SpotMyGene.addSubTreeClass = function(d, nodes, link, className) {
+  var classChildNodes, l, len, node;
+  for (l = 0, len = nodes.length; l < len; l++) {
+    node = nodes[l];
+    node[className] = false;
+  }
+  classChildNodes = function(node) {
+    node[className] = true;
+    if (node.children != null) {
+      classChildNodes(node.children[0]);
+      return classChildNodes(node.children[1]);
+    }
+  };
+  classChildNodes(d.source);
+  return link.classed(className, function(d) {
+    return d.target[className];
+  });
+};
+
+d3.SpotMyGene.removeSubTreeClass = function(nodes, link, className) {
+  var l, len, node;
+  for (l = 0, len = nodes.length; l < len; l++) {
+    node = nodes[l];
+    node[className] = false;
+  }
+  return link.classed(className, false);
+};
+
+d3.SpotMyGene.GeneDendogram = function(svg, params) {
+  d3.SpotMyGene.Dendogram.call(this, svg, params);
+  this.render = (function(_this) {
+    return function(root, genes) {
+      var container, nodes, ref, selection;
+      container = svg.select('.gene-dendogram');
+      ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
+      selection.on('click', function(d) {
+        var leaf, names, selectedGenes, selectedLeaves;
+        selectedLeaves = d3.SpotMyGene.leaves(d.source);
+        d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
+        names = (function() {
+          var l, len, results;
+          results = [];
+          for (l = 0, len = selectedLeaves.length; l < len; l++) {
+            leaf = selectedLeaves[l];
+            results.push(leaf.name);
+          }
+          return results;
+        })();
+        selectedGenes = genes.filter(function(gene) {
+          var ref1;
+          return ref1 = gene.id, indexOf.call(names, ref1) >= 0;
+        });
+        return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, 'dendogram');
+      });
+      return d3.SpotMyGene.dispatch.on('updateSelectedGenes.dendogram', function(selectedGenes, source) {
+        if (source !== 'dendogram') {
+          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
+        }
+      });
+    };
+  })(this);
+  return this;
+};
+
+d3.SpotMyGene.SampleDendogram = function(svg, params) {
+  d3.SpotMyGene.Dendogram.call(this, svg, params);
+  this.render = (function(_this) {
+    return function(root, samples) {
+      var container, nodes, ref, selection;
+      container = svg.select('.sample-dendogram');
+      ref = _this._render(container, root), selection = ref[0], nodes = ref[1];
+      selection.on('click', function(d) {
+        var leaf, names, selectedLeaves, selectedSamples;
+        selectedLeaves = d3.SpotMyGene.leaves(d.source);
+        d3.SpotMyGene.addSubTreeClass(d, nodes, selection, 'active');
+        names = (function() {
+          var l, len, results;
+          results = [];
+          for (l = 0, len = selectedLeaves.length; l < len; l++) {
+            leaf = selectedLeaves[l];
+            results.push(leaf.name);
+          }
+          return results;
+        })();
+        selectedSamples = samples.filter(function(sample) {
+          var ref1;
+          return ref1 = sample.id, indexOf.call(names, ref1) >= 0;
+        });
+        return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples);
+      });
+      return d3.SpotMyGene.dispatch.on('updateSelectedSamples.dendogram', function(selectedSamples, source) {
+        if (source !== 'dendogram') {
+          return d3.SpotMyGene.removeSubTreeClass(root, selection, 'active');
+        }
+      });
+    };
+  })(this);
+  return this;
+};
+
+d3.SpotMyGene.GenePie = function(params) {
+  params = d3.SpotMyGene.defaults(params, d3.SpotMyGene.pieDefaultParameters);
+  d3.SpotMyGene.Pie.call(this, params);
+  d3.SpotMyGene.dispatch.on("updateSelectedGenes.pie" + this.id, (function(_this) {
+    return function(selectedGenes) {
+      _this.selectedObjectsBuffer = selectedGenes;
+      return _this.render(selectedGenes, _this.accessorBuffer);
+    };
+  })(this));
+  if (params.focusOnCellMouseover) {
+    d3.SpotMyGene.dispatch.on("cellMouseover.pie" + this.id, (function(_this) {
+      return function(cell, d) {
+        var gene, targetId;
+        gene = _this.map.get(d.geneId);
+        if (gene != null) {
+          targetId = _this.accessorBuffer(gene);
+          return _this.chart.focus(targetId);
+        }
+      };
+    })(this));
+    d3.SpotMyGene.dispatch.on("cellMouseout.pie" + this.id, (function(_this) {
+      return function(cell, d) {
+        var gene;
+        gene = _this.map.get(d.geneId);
+        if (gene != null) {
+          return _this.chart.focus();
+        }
+      };
+    })(this));
+  }
+  return this;
+};
+
+d3.SpotMyGene.pieDefaultParameters = {
+  container: '',
+  colors: d3.scale.category20().range(),
+  focusOnCellMouseover: true
+};
+
 d3.SpotMyGene._pieCount = 0;
 
 d3.SpotMyGene.Pie = function(params) {
-  var chart, currentIds, defaultParams, render;
-  defaultParams = {
-    container: '',
-    colors: d3.scale.category20().range()
-  };
-  params = d3.SpotMyGene.defaults(params, defaultParams);
+  var buildMap, currentIds, render;
   this.id = d3.SpotMyGene._pieCount;
   d3.SpotMyGene._pieCount++;
   currentIds = [];
   this.selectedObjectsBuffer = null;
   this.accessorBuffer = null;
-  chart = c3.generate({
+  this.chart = c3.generate({
     bindto: params.container,
     data: {
       columns: [],
@@ -1013,9 +1047,19 @@ d3.SpotMyGene.Pie = function(params) {
       pattern: params.colors
     }
   });
+  buildMap = function(objects) {
+    var l, len, map, object;
+    map = d3.map();
+    for (l = 0, len = objects.length; l < len; l++) {
+      object = objects[l];
+      map.set(object.id, object);
+    }
+    return map;
+  };
   render = (function(_this) {
     return function(objects, accessor) {
       var elt, idsToUnload, nest, newIds;
+      _this.map = buildMap(objects);
       _this.selectedObjectsBuffer = objects;
       _this.accessorBuffer = accessor;
       nest = d3.nest().key(accessor).sortKeys(d3.ascending).entries(objects);
@@ -1031,7 +1075,7 @@ d3.SpotMyGene.Pie = function(params) {
       idsToUnload = currentIds.filter(function(id) {
         return indexOf.call(newIds, id) < 0;
       });
-      chart.load({
+      _this.chart.load({
         columns: (function() {
           var l, len, results;
           results = [];
@@ -1042,7 +1086,7 @@ d3.SpotMyGene.Pie = function(params) {
           return results;
         })()
       });
-      chart.unload({
+      _this.chart.unload({
         ids: idsToUnload
       });
       return currentIds = newIds;
@@ -1062,17 +1106,6 @@ d3.SpotMyGene.Pie = function(params) {
 d3.SpotMyGene.SamplePie = function(params) {
   d3.SpotMyGene.Pie.call(this, params);
   d3.SpotMyGene.dispatch.on("updateSelectedSamples.pie" + this.id, (function(_this) {
-    return function(selectedGenes) {
-      _this.selectedObjectsBuffer = selectedGenes;
-      return _this.render(selectedGenes, _this.accessorBuffer);
-    };
-  })(this));
-  return this;
-};
-
-d3.SpotMyGene.GenePie = function(params) {
-  d3.SpotMyGene.Pie.call(this, params);
-  d3.SpotMyGene.dispatch.on("updateSelectedGenes.pie" + this.id, (function(_this) {
     return function(selectedGenes) {
       _this.selectedObjectsBuffer = selectedGenes;
       return _this.render(selectedGenes, _this.accessorBuffer);
