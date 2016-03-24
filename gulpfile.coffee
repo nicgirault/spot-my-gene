@@ -18,6 +18,7 @@ gulp.task 'compile', ->
     'src/mouseover-cell.coffee'
     'src/colors.coffee'
     'src/highlight.coffee'
+    'src/labels/!(*test).coffee'
     'src/labels.coffee'
     'src/clustering.coffee'
     'src/render-heatmap.coffee'
@@ -29,6 +30,7 @@ gulp.task 'compile', ->
     'src/dendogram/!(*test).coffee'
     'src/pie/!(*test).coffee'
     'src/common/!(*test).coffee'
+    'src/behavior/!(*test).coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true

@@ -10,12 +10,6 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   geneRoot = d3.SpotMyGene.clusteringUPGMA(d3.SpotMyGene.euclideanDistance(data, geneIds, sampleIds, "row"), geneIds)
   d3.SpotMyGene.sortByCluster(data.genes, geneRoot, true)
 
-  # zoom = d3.behavior.zoom()
-  #   .scaleExtent([1, 8])
-  #
-  # if params.enableZoom
-  #   zoom.on('zoom', d3.SpotMyGene.zoom(params, zoom))
-
   filterBySample = (cells, samples) ->
     selectedIds = samples.map (sample) -> sample.name
 

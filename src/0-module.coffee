@@ -9,6 +9,8 @@ d3.SpotMyGene.Core = (params) ->
   @
 
 d3.SpotMyGene.preRender = (params, data) ->
+  computeGeneLabelSize = (height, genesLength) ->
+    height / genesLength
   heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height
   params.heatmap.cell.width = heatmapWidth / data.samples.length
   params.sampleDendogram.width = heatmapWidth
@@ -19,6 +21,7 @@ d3.SpotMyGene.preRender = (params, data) ->
   params.heatmap.height = params.heatmap.cell.height * data.genes.length
 
   params.geneDendogram.width = params.heatmap.height
+  params.geneLabels.size = computeGeneLabelSize params.heatmap.height, data.genes.length
 
   d3.SpotMyGene.varianceScaling data.cells
 

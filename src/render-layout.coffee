@@ -18,6 +18,8 @@ d3.SpotMyGene.Core.prototype.render2 = (data, params) ->
     .attr 'class', 'heatmap-with-labels'
     .attr 'transform', "translate(#{params.margins.left + params.geneDendogram.height}, #{params.margins.top + params.sampleDendogram.height})"
 
+
+
   heatmap.append('clipPath')
     .attr('id', 'sample-labels-panel') # TODO: add number to guarantee unique id
     .append('rect')
@@ -51,7 +53,7 @@ d3.SpotMyGene.Core.prototype.render2 = (data, params) ->
     .attr('height', params.heatmap.height)
   heatmap.append('g')
     .attr('class', 'heatmap')
-    .attr('transform', "translate(#{params.geneLabels.length}, #{params.sampleLabels.length})")
+    .attr('transform', "translate(#{params.geneLabels.length + params.geneLabels.margin}, #{params.sampleLabels.length})")
     .attr('clip-path', 'url(#heatmap-panel)')
 
   @render(svg, data, params)
