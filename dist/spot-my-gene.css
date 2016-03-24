@@ -41,11 +41,6 @@
 }
 .spot-my-gene text {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  font-size: 13px;
-}
-.spot-my-gene .x.axis path,
-.spot-my-gene .y.axis path {
-  display: none;
 }
 @-webkit-keyframes appear {
   from {

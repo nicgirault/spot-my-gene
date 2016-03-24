@@ -143,7 +143,9 @@ d3.json('raw-data.json', function(data) {
       genes: genes,
       cells: cells
     };
-    d3.SpotMyGene(formatedData, {});
+    d3.SpotMyGene(formatedData, {
+      maxHeight: 700
+    });
     genePie.render(genes, geneAccessors.type);
     return samplePie.render(samples, function(sample) {
       return sample.summary.sx;

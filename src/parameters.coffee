@@ -17,6 +17,7 @@ d3.SpotMyGene.Parameters = (parameters) ->
         html += '</table>'
         html
     geneLabels:
+      margin: 5
       length: 100
       showTooltips: true
       tooltipContent: (d) ->
@@ -37,7 +38,7 @@ d3.SpotMyGene.Parameters = (parameters) ->
         '#FEFEFE'
         '#009688'
       ]
-    enableZoom: false
+    enableZoom: true
     legend:
       container: '#legend'
       width: 700
