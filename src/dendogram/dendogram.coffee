@@ -82,5 +82,4 @@ d3.SpotMyGene.addSubTreeClass = (d, nodes, link, className) ->
 d3.SpotMyGene.removeSubTreeClass = (nodes, link, className) ->
   for node in nodes
     node[className] = false
-
   link.classed className, false
