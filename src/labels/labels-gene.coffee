@@ -25,9 +25,9 @@ class d3.SpotMyGene.GeneLabels extends d3.SpotMyGene.Labels
 
     params = @params
     params =
+      height: params.heatmap.height
       width: params.geneLabels.length
       step: params.heatmap.cell.height
-      outerPadding: params.heatmap.cell.height / 2
       fontSize: 13
     selection = @_render genes, params
     d3.selectable container, selection, updateSelected
