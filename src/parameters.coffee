@@ -38,7 +38,10 @@ d3.SpotMyGene.Parameters = (parameters) ->
         '#FEFEFE'
         '#009688'
       ]
-    enableZoom: true
+    zoom:
+      enabled: true
+      maxCellHeight: 60
+      maxCellWidth: 80
     legend:
       container: '#legend'
       width: 700

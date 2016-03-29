@@ -11,7 +11,6 @@ deploy = require 'gulp-gh-pages'
 gulp.task 'compile', ->
   gulp.src [
     'src/0-module.coffee'
-    'src/selectable.coffee'
     'src/parameters.coffee'
     'src/mouseover-gene.coffee'
     'src/mouseover-sample.coffee'
@@ -22,14 +21,13 @@ gulp.task 'compile', ->
     'src/render-heatmap.coffee'
     'src/render-layout.coffee'
     'src/normalization.coffee'
-    'src/zoom.coffee'
+    'src/behavior/!(*test).coffee'
     'src/heatmap.coffee'
     'src/legend.coffee'
     'src/dendogram/!(*test).coffee'
     'src/pie/!(*test).coffee'
     'src/common/!(*test).coffee'
     'src/labels/!(*test).coffee'
-    'src/behavior/!(*test).coffee'
   ]
   .pipe concat 'spot-my-gene.coffee'
   .pipe coffee bare: true
