@@ -35,13 +35,13 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
   legend.render(heatmap.colorScale)
 
-  geneLabels = new d3.SpotMyGene.GeneLabels params, svg
+  geneLabels = new d3.SpotMyGene.GeneLabels params.geneLabels, svg
   geneLabels.render data.genes
 
-  sampleLabels = new d3.SpotMyGene.SampleLabels params, svg
+  sampleLabels = new d3.SpotMyGene.SampleLabels params.sampleLabels, svg
   sampleLabels.render data.samples
 
   if params.zoom?.enabled
-    d3.SpotMyGene.Zoom svg, params, heatmap, geneLabels
+    d3.SpotMyGene.Zoom svg, params, heatmap, geneLabels, sampleLabels
 
   d3.SpotMyGene.dispatch.renderEnd()

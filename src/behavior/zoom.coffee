@@ -1,5 +1,5 @@
 class d3.SpotMyGene.Zoom
-  constructor: (svg, params, heatmap, geneLabels) ->
+  constructor: (svg, params, heatmap, geneLabels, sampleLabels) ->
     # TODO: ne garder qu'un behavior
     zoom = d3.behavior.zoom()
       .scaleExtent [1, 8]
@@ -12,25 +12,28 @@ class d3.SpotMyGene.Zoom
       .size [params.heatmap.width, params.heatmap.height]
 
     d3.selectAll 'button[data-zoom-gene]'
-      .on 'click', d3.SpotMyGene.geneZoom svg, params, heatmap, geneLabels, geneZoom
+      .on 'click', d3.SpotMyGene.geneZoom svg, params, heatmap, geneLabels, sampleLabels, geneZoom
 
     cells = svg.select '.cells-group'
-    geneZoom.on 'zoom', d3.SpotMyGene.zoom svg, params, heatmap, geneLabels, geneZoom
+    geneZoom.on 'zoom', d3.SpotMyGene.zoom svg, params, heatmap, geneLabels, sampleLabels, geneZoom
 
     geneZoom svg
-    cells.on "wheel.zoom", null
-    cells.on "mousewheel.zoom", null
-    cells.on "MozMousePixelScroll.zoom", null
+
+    # disable zoom on scroll
+    svg.on "wheel.zoom", null
+    svg.on "mousewheel.zoom", null
+    svg.on "MozMousePixelScroll.zoom", null
 
 # avoid getting inconsistent scale or translation vectors
 d3.SpotMyGene._moveChecker = (translateX, translateY, scale, params) ->
-  # TODO: reparer le translate négatif
-  # TODO: scaleX and scaleY
-  scale = 1 if scale < 1
-  scale = Math.min scale, params.zoom.maxCellHeight / params.heatmap.cell.height
+  scaleX = Math.min scale, params.zoom.maxCellWidth / params.heatmap.cell.width
+  scaleX = 1 if scaleX < 1
 
-  maxX = (scale - 1) * params.heatmap.width
-  maxY = (scale - 1) * params.heatmap.height
+  scaleY = Math.min scale, params.zoom.maxCellHeight / params.heatmap.cell.height
+  scaleY = 1 if scaleY < 1
+
+  maxX = (scaleX - 1) * params.heatmap.width
+  maxY = (scaleY - 1) * params.heatmap.height
 
   if translateX > 0
     translateX = 0
@@ -41,24 +44,24 @@ d3.SpotMyGene._moveChecker = (translateX, translateY, scale, params) ->
   if translateY < -maxY
     translateY = -maxY
 
-  [[translateX, translateY], scale]
+  [[translateX, translateY], [scaleX, scaleY]]
 
-d3.SpotMyGene.geneZoom = (svg, params, heatmap, geneLabels, zoom) ->
+d3.SpotMyGene.geneZoom = (svg, params, heatmap, geneLabels, sampleLabels, behavior) ->
   ->
     point = (coordinates) ->
-      scale = zoom.scale()
-      translate = zoom.translate()
+      scale = behavior.scale()
+      translate = behavior.translate()
       [coordinates[0] * scale + translate[0], coordinates[1] * scale + translate[1]]
     coordinates = (point) ->
-      scale = zoom.scale()
-      translate = zoom.translate()
+      scale = behavior.scale()
+      translate = behavior.translate()
       [(point[0] - translate[0]) / scale, (point[1] - translate[1]) / scale]
 
     # TODO: retirer le centre
-    center0 = zoom.center()
-    translate0 = zoom.translate()
+    center0 = behavior.center()
+    translate0 = behavior.translate()
     coordinates0 = coordinates center0
-    scale = zoom.scale() * Math.pow(2, +@getAttribute('data-zoom-gene'))
+    scale = behavior.scale() * Math.pow(2, +@getAttribute('data-zoom-gene'))
 
     center1 = point coordinates0
     translateY = translate0[1] + center0[1] - center1[1]
@@ -70,13 +73,14 @@ d3.SpotMyGene.geneZoom = (svg, params, heatmap, geneLabels, zoom) ->
       scale,
       params
     )
-    zoom.scale scale
-    zoom.translate translate
+    # reset translate vector
+    behavior.translate translate
+    behavior.scale scale[1]
 
-    geneLabels.zoom scale, translate
-    heatmap.zoom [1, scale], translate
+    geneLabels.zoom scale[1], translate
+    heatmap.zoom [1, scale[1]], translate
 
-d3.SpotMyGene.zoom = (svg, params, heatmap, geneLabels, behavior) ->
+d3.SpotMyGene.zoom = (svg, params, heatmap, geneLabels, sampleLabels, behavior) ->
   ->
     [translate, scale] = d3.SpotMyGene._moveChecker(
       d3.event.translate[0],
@@ -84,8 +88,9 @@ d3.SpotMyGene.zoom = (svg, params, heatmap, geneLabels, behavior) ->
       d3.event.scale,
       params
     )
-    svg.select('.x.axis')
-      .attr('transform', "translate(#{translate}) scale(#{scale})")
+    # reset translate vector
+    behavior.translate translate
 
-    geneLabels.zoom scale, translate
-    heatmap.zoom [scale, scale], translate
+    geneLabels.zoom scale[1], [0, translate[1]]
+    sampleLabels.zoom scale[0], [0, translate[0]]
+    heatmap.zoom scale, translate

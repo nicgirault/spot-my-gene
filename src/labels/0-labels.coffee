@@ -1,6 +1,5 @@
 class d3.SpotMyGene.Labels
   resize = (container, params) ->
-    console.log params
     text = container.selectAll 'text'
 
     labelHeight = container.select 'text'
@@ -23,42 +22,38 @@ class d3.SpotMyGene.Labels
       container.attr 'transform', "translate(#{params.translate})"
 
     container.selectAll 'text'
-      .attr 'y', (d, i) ->
+      .attr 'transform', (d, i) ->
         labelHeight = d3.select(@).node().getBBox().height
-        i * params.step + (labelHeight + params.step)/2
-
+        offset = i * params.step + (labelHeight + params.step)/2
+        "translate(0, #{offset}) #{params.transform}"
 
   constructor: (container, params) ->
     @container = container
     @params = params
 
   zoom: (scale, translate) ->
-    params =
-      height: @params.heatmap.height
-      width: @params.geneLabels.length
-      step: @params.heatmap.cell.height * scale
-      translate: translate
+    # clone
+    params = {}
+    for key, value of @params
+      params[key] = value
+
+    params.step = params.step * scale
+    params.translate = translate
+
     resize @container, params
 
-  _render: (items, params) ->
+  _render: (items) ->
     selection = @container
-      .style 'font-size', params.fontSize
+      .style 'font-size', @params.fontSize
       .selectAll 'text'
       .data items, (item) -> item.id
-
-    selection
-      .text (d) -> d.id
-      .attr 'x', params.width
-      .style 'font-size', params.fontSize
 
     selection.exit().remove()
 
     selection.enter()
       .append 'text'
       .text (d) -> d.id
-      .attr 'x', params.width
-      .attr 'text-anchor', 'end'
 
-    resize @container, params
+    resize @container, @params
 
     selection
