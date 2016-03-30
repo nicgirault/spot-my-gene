@@ -1,9 +1,9 @@
 d3.SpotMyGene.listenSampleMouseover = (element, params) ->
-  if params.sampleLabels.showTooltips
+  if params.showTooltips
     d3.SpotMyGene.sampleTip = d3.tip()
       .direction('s')
       .offset([20, 0])
-      .html params.sampleLabels.tooltipContent
+      .html params.tooltipContent
 
     element.call d3.SpotMyGene.sampleTip
 

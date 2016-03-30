@@ -24,25 +24,24 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
     .domain (gene.id for gene in data.genes)
     .range (i * params.heatmap.cell.height for i of data.genes)
 
-  cells = svg.select('.heatmap')
-    .append('g')
-    .attr('class', 'cells-group')
-
   sampleDendogram = new d3.SpotMyGene.SampleDendogram svg, params.sampleDendogram
   sampleDendogram.render sampleRoot, data.samples
 
   geneDendogram = new d3.SpotMyGene.GeneDendogram svg, params.geneDendogram
   geneDendogram.render geneRoot, data.genes
 
-  heatmap = new d3.SpotMyGene.Heatmap(svg, cells, data.cells, params.heatmap, sampleScale, geneScale)
+  heatmap = new d3.SpotMyGene.Heatmap(svg, data.cells, params.heatmap, sampleScale, geneScale)
 
   legend = new d3.SpotMyGene.HeatmapLegend(params.legend)
   legend.render(heatmap.colorScale)
 
-  geneLabels = new d3.SpotMyGene.GeneLabels params, svg
+  geneLabels = new d3.SpotMyGene.GeneLabels params.geneLabels, svg
   geneLabels.render data.genes
 
-  sampleLabels = new d3.SpotMyGene.SampleLabels params, svg
+  sampleLabels = new d3.SpotMyGene.SampleLabels params.sampleLabels, svg
   sampleLabels.render data.samples
+
+  if params.zoom?.enabled
+    d3.SpotMyGene.Zoom svg, params, heatmap, geneLabels, sampleLabels
 
   d3.SpotMyGene.dispatch.renderEnd()

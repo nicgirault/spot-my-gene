@@ -1,3 +1,3 @@
-describe 'SoptMyGene', ->
+describe 'SpotMyGene', ->
   it 'should be defined', ->
-    expect(d3.SpotMyGene).to.be.a 'function'
+    expect(d3.SpotMyGene).toEqual jasmine.any Function

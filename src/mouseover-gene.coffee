@@ -1,5 +1,5 @@
 d3.SpotMyGene.listenGeneMouseover = (element, params, data) ->
-  if params.geneLabels.showTooltips
+  if params.showTooltips
     geneByIds = {}
     for gene in data.genes
       geneByIds[gene.id] = gene
@@ -7,7 +7,7 @@ d3.SpotMyGene.listenGeneMouseover = (element, params, data) ->
     d3.SpotMyGene.geneTip = d3.tip()
       .direction('s')
       .offset([20, 0])
-      .html params.geneLabels.tooltipContent
+      .html params.tooltipContent
 
     element.call d3.SpotMyGene.geneTip
 

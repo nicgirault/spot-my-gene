@@ -1,7 +1,7 @@
 describe 'SpotMyGene.resizeTree', ->
 
   it 'should be defined', ->
-    expect(d3.SpotMyGene.resizeTree).to.be.a 'function'
+    expect(d3.SpotMyGene.resizeTree).toEqual jasmine.any Function
 
   it 'should compute correct values for (x,y)', ->
     data =

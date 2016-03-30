@@ -1,4 +1,4 @@
-d3.SpotMyGene.Heatmap = (parentContainer, cells, cellsData, params, sampleScale, geneScale) ->
+d3.SpotMyGene.Heatmap = (container, cellsData, params, sampleScale, geneScale) ->
   domain = d3.extent cellsData, (cell) -> cell.value
   domain.splice 1, 0, (domain[0] + domain[1])/2
 
@@ -6,7 +6,11 @@ d3.SpotMyGene.Heatmap = (parentContainer, cells, cellsData, params, sampleScale,
     .domain domain
     .range params.colors
 
-  cells = cells.selectAll('rect')
+  heatmap = container.select '.heatmap'
+    .append 'g'
+    .attr 'class', 'cells-group'
+
+  cells = heatmap.selectAll('rect')
     .data(cellsData, (d) -> "#{d.sampleId}-#{d.geneId}")
 
   cells
@@ -33,6 +37,17 @@ d3.SpotMyGene.Heatmap = (parentContainer, cells, cellsData, params, sampleScale,
     .style('fill', (d) -> colorScale(d.value))
 
   cells.exit().remove()
+
+  @zoom = (scale, translate) ->
+    heatmap.attr 'transform', "translate(#{translate})"
+
+    cells
+      .attr 'x', (d) ->
+        sampleScale(d.sampleId) * scale[0]
+      .attr 'y', (d) ->
+        geneScale(d.geneId) * scale[1]
+      .attr 'width', params.cell.width * scale[0]
+      .attr 'height', params.cell.height * scale[1]
 
   @colorScale = colorScale
   @

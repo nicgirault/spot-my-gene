@@ -17,7 +17,7 @@ d3.SpotMyGene.Core = function(params) {
 
 d3.SpotMyGene.preRender = function(params, data) {
   var heatmapWidth;
-  heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height;
+  heatmapWidth = params.width - params.geneLabels.length - params.geneLabels.margin - params.geneDendogram.height - params.margins.left;
   params.heatmap.cell.width = heatmapWidth / data.samples.length;
   params.sampleDendogram.width = heatmapWidth;
   params.heatmap.width = heatmapWidth;
@@ -26,7 +26,25 @@ d3.SpotMyGene.preRender = function(params, data) {
   }
   params.heatmap.height = params.heatmap.cell.height * data.genes.length;
   params.geneDendogram.width = params.heatmap.height;
+  d3.SpotMyGene.defaultGeneLabelParameters(params);
+  d3.SpotMyGene.defaultSampleLabelParameters(params);
   return d3.SpotMyGene.varianceScaling(data.cells);
+};
+
+d3.SpotMyGene.defaultGeneLabelParameters = function(params) {
+  params.geneLabels.height = params.heatmap.height;
+  params.geneLabels.width = params.geneLabels.length;
+  params.geneLabels.step = params.heatmap.cell.height;
+  params.geneLabels.fontSize = 13;
+  return params.geneLabels.transform = "";
+};
+
+d3.SpotMyGene.defaultSampleLabelParameters = function(params) {
+  params.sampleLabels.height = params.heatmap.width;
+  params.sampleLabels.width = params.sampleLabels.length;
+  params.sampleLabels.step = params.heatmap.cell.width;
+  params.sampleLabels.fontSize = 13;
+  return params.sampleLabels.transform = "translate(0, -" + (params.heatmap.cell.width / 3) + ") rotate(45)";
 };
 
 d3.SpotMyGene.selectedSamples = [];
@@ -86,7 +104,11 @@ d3.SpotMyGene.Parameters = function(parameters) {
       },
       colors: ['#E75753', '#FEFEFE', '#009688']
     },
-    enableZoom: true,
+    zoom: {
+      enabled: true,
+      maxCellHeight: 60,
+      maxCellWidth: 80
+    },
     legend: {
       container: '#legend',
       width: 700,
@@ -104,14 +126,14 @@ d3.SpotMyGene.Parameters = function(parameters) {
 
 d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
   var gene, geneByIds, l, len, ref;
-  if (params.geneLabels.showTooltips) {
+  if (params.showTooltips) {
     geneByIds = {};
     ref = data.genes;
     for (l = 0, len = ref.length; l < len; l++) {
       gene = ref[l];
       geneByIds[gene.id] = gene;
     }
-    d3.SpotMyGene.geneTip = d3.tip().direction('s').offset([20, 0]).html(params.geneLabels.tooltipContent);
+    d3.SpotMyGene.geneTip = d3.tip().direction('s').offset([20, 0]).html(params.tooltipContent);
     element.call(d3.SpotMyGene.geneTip);
     d3.SpotMyGene.dispatch.on('geneMouseover', function(d, i, j) {
       return d3.SpotMyGene.geneTip.attr('class', 'd3-tip appear').show(geneByIds[d]);
@@ -124,8 +146,8 @@ d3.SpotMyGene.listenGeneMouseover = function(element, params, data) {
 };
 
 d3.SpotMyGene.listenSampleMouseover = function(element, params) {
-  if (params.sampleLabels.showTooltips) {
-    d3.SpotMyGene.sampleTip = d3.tip().direction('s').offset([20, 0]).html(params.sampleLabels.tooltipContent);
+  if (params.showTooltips) {
+    d3.SpotMyGene.sampleTip = d3.tip().direction('s').offset([20, 0]).html(params.tooltipContent);
     element.call(d3.SpotMyGene.sampleTip);
     d3.SpotMyGene.dispatch.on('sampleMouseover', function(d, i, j) {
       return d3.SpotMyGene.sampleTip.attr('class', 'd3-tip appear').show(d);
@@ -335,7 +357,7 @@ d3.SpotMyGene.sortByCluster = function(elements, root, reverse) {
 };
 
 d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
-  var cells, filterBySample, gene, geneDendogram, geneIds, geneLabels, geneRoot, geneScale, heatmap, i, legend, sample, sampleDendogram, sampleIds, sampleLabels, sampleRoot, sampleScale;
+  var filterBySample, gene, geneDendogram, geneIds, geneLabels, geneRoot, geneScale, heatmap, i, legend, ref, sample, sampleDendogram, sampleIds, sampleLabels, sampleRoot, sampleScale;
   if (!data) {
     return;
   }
@@ -407,32 +429,36 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
     }
     return results;
   })());
-  cells = svg.select('.heatmap').append('g').attr('class', 'cells-group');
   sampleDendogram = new d3.SpotMyGene.SampleDendogram(svg, params.sampleDendogram);
   sampleDendogram.render(sampleRoot, data.samples);
   geneDendogram = new d3.SpotMyGene.GeneDendogram(svg, params.geneDendogram);
   geneDendogram.render(geneRoot, data.genes);
-  heatmap = new d3.SpotMyGene.Heatmap(svg, cells, data.cells, params.heatmap, sampleScale, geneScale);
+  heatmap = new d3.SpotMyGene.Heatmap(svg, data.cells, params.heatmap, sampleScale, geneScale);
   legend = new d3.SpotMyGene.HeatmapLegend(params.legend);
   legend.render(heatmap.colorScale);
-  geneLabels = new d3.SpotMyGene.GeneLabels(params, svg);
+  geneLabels = new d3.SpotMyGene.GeneLabels(params.geneLabels, svg);
   geneLabels.render(data.genes);
-  sampleLabels = new d3.SpotMyGene.SampleLabels(params, svg);
+  sampleLabels = new d3.SpotMyGene.SampleLabels(params.sampleLabels, svg);
   sampleLabels.render(data.samples);
+  if ((ref = params.zoom) != null ? ref.enabled : void 0) {
+    d3.SpotMyGene.Zoom(svg, params, heatmap, geneLabels, sampleLabels);
+  }
   return d3.SpotMyGene.dispatch.renderEnd();
 };
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
-  var heatmap, svg;
-  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.heatmap.cell.height * data.genes.length + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top);
+  var geneLabels, heatmap, sampleLabels, svg;
+  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.heatmap.height + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top);
   svg.selectAll('*').remove();
   svg.append('g').attr('class', 'sample-dendogram').attr('transform', "translate(" + (params.margins.left + params.geneLabels.length + params.geneDendogram.height) + ", 0)");
   svg.append('g').attr('class', 'gene-dendogram').attr('transform', "translate(" + params.margins.left + ", " + (params.sampleLabels.length + params.sampleDendogram.height + params.heatmap.height + params.heatmap.cell.height / 2) + ") rotate(-90)");
   heatmap = svg.append('g').attr('class', 'heatmap-with-labels').attr('transform', "translate(" + (params.margins.left + params.geneDendogram.height) + ", " + (params.margins.top + params.sampleDendogram.height) + ")");
-  heatmap.append('clipPath').attr('id', 'sample-labels-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.heatmap.width).attr('height', params.sampleLabels.length);
-  heatmap.append('g').attr('class', 'sample-labels').attr('transform', "translate(" + params.geneLabels.length + ", 0)").attr('clip-path', 'url(#sample-labels-panel)');
-  heatmap.append('clipPath').attr('id', 'gene-labels-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.geneLabels.length).attr('height', params.heatmap.height);
-  heatmap.append('g').attr('class', 'gene-labels').attr('transform', "translate(0, " + params.sampleLabels.length + ")").attr('clip-path', 'url(#gene-labels-panel)');
+  sampleLabels = heatmap.append('g').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ") rotate(-90)");
+  sampleLabels.append('clipPath').attr('id', 'sample-labels-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.sampleLabels.length).attr('height', params.heatmap.width);
+  sampleLabels.append('g').attr('class', 'sample-labels').attr('clip-path', 'url(#sample-labels-panel)');
+  geneLabels = heatmap.append('g').attr('transform', "translate(" + params.geneLabels.length + ", " + params.sampleLabels.length + ")");
+  geneLabels.append('clipPath').attr('id', 'gene-labels-panel').append('rect').attr('x', -params.geneLabels.length).attr('y', 0).attr('width', params.geneLabels.length).attr('height', params.heatmap.height);
+  geneLabels.append('g').attr('class', 'gene-labels').attr('clip-path', 'url(#gene-labels-panel)');
   heatmap.append('clipPath').attr('id', 'heatmap-panel').append('rect').attr('x', 0).attr('y', 0).attr('width', params.heatmap.width).attr('height', params.heatmap.height);
   heatmap.append('g').attr('class', 'heatmap').attr('transform', "translate(" + (params.geneLabels.length + params.geneLabels.margin) + ", " + params.sampleLabels.length + ")").attr('clip-path', 'url(#heatmap-panel)');
   return this.render(svg, data, params);
@@ -466,14 +492,240 @@ d3.SpotMyGene.varianceScaling = function(cells) {
   return results;
 };
 
-d3.SpotMyGene.Heatmap = function(parentContainer, cells, cellsData, params, sampleScale, geneScale) {
-  var colorScale, domain;
+d3.selectable = function(ul, li, update) {
+  var isParentNode, keyCodes, lastDecision, select, selectFirst, selectLast;
+  lastDecision = void 0;
+  isParentNode = function(parentNode, node) {
+    if (!node) {
+      return false;
+    }
+    if (node === parentNode) {
+      return true;
+    }
+    return isParentNode(parentNode, node.parentNode);
+  };
+  selectFirst = function(selection) {
+    return selection.each(function(d, i) {
+      if (i === 0) {
+        return d._selected = true;
+      }
+    });
+  };
+  selectLast = function(selection) {
+    return selection.each(function(d, i, j) {
+      if (i === selection[j].length - 1) {
+        return d._selected = true;
+      }
+    });
+  };
+  select = function(d, node) {
+    var currentIndex, firstSelectedIndex, lastSelectedIndex, lis, max, min, parentNode;
+    parentNode = ul.filter(function() {
+      return isParentNode(this, node);
+    }).node();
+    lis = li.filter(function() {
+      return isParentNode(parentNode, this);
+    });
+    if (d3.event.shiftKey) {
+      firstSelectedIndex = void 0;
+      lastSelectedIndex = void 0;
+      currentIndex = void 0;
+      lis.each(function(dl, i) {
+        if (dl._selected) {
+          firstSelectedIndex || (firstSelectedIndex = i);
+          lastSelectedIndex = i;
+        }
+        if (this === node) {
+          currentIndex = i;
+        }
+      });
+      min = Math.min(firstSelectedIndex, lastSelectedIndex, currentIndex);
+      max = Math.max(firstSelectedIndex, lastSelectedIndex, currentIndex);
+      lis.each(function(d, i) {
+        d._selected = d3.event.ctrlKey && d._selected || i >= min && i <= max;
+      });
+    } else {
+      if (!d3.event.ctrlKey) {
+        lis.each(function(d) {
+          d._selected = false;
+        });
+      }
+      d._selected = !d._selected;
+    }
+    lastDecision = d._selected;
+    update();
+  };
+  li.on('mousedown.selectable', function(d) {
+    select(d, this);
+  });
+  li.on('mouseover.selectable', function(d) {
+    if (d3.event.which) {
+      d._selected = lastDecision;
+      update();
+    }
+  });
+  keyCodes = {
+    up: 38,
+    down: 40,
+    home: 36,
+    end: 35,
+    a: 65
+  };
+  ul.on('keydown.selectable', function() {
+    var focus, madeSelection, scope, selecteds;
+    if (d3.values(keyCodes).indexOf(d3.event.keyCode) === -1) {
+      return;
+    }
+    if (d3.event.keyCode === keyCodes.a && !d3.event.ctrlKey) {
+      return;
+    }
+    focus = ul.filter(':focus').node();
+    if (!focus) {
+      return;
+    }
+    d3.event.preventDefault();
+    scope = li.filter(function(d) {
+      return isParentNode(focus, this);
+    });
+    selecteds = scope.select(function(d) {
+      return d._selected;
+    });
+    if (!d3.event.ctrlKey) {
+      scope.each(function(d) {
+        d._selected = false;
+      });
+    }
+    madeSelection = false;
+    switch (d3.event.keyCode) {
+      case keyCodes.up:
+        selecteds.each(function(d, i, j) {
+          if (scope[j][i - 1]) {
+            madeSelection = d3.select(scope[j][i - 1]).data()[0]._selected = true;
+          }
+        });
+        if (!madeSelection) {
+          selectLast(scope);
+        }
+        break;
+      case keyCodes.down:
+        selecteds.each(function(d, i, j) {
+          if (scope[j][i + 1]) {
+            madeSelection = d3.select(scope[j][i + 1]).data()[0]._selected = true;
+          }
+        });
+        if (!madeSelection) {
+          selectFirst(scope);
+        }
+        break;
+      case keyCodes.home:
+        selectFirst(scope);
+        break;
+      case keyCodes.end:
+        selectLast(scope);
+        break;
+      case keyCodes.a:
+        scope.each(function(d) {
+          d._selected = !d3.event.shiftKey;
+        });
+    }
+    update();
+  });
+};
+
+d3.SpotMyGene.Zoom = (function() {
+  function Zoom(svg, params, heatmap, geneLabels, sampleLabels) {
+    var cells, geneZoom, zoom;
+    zoom = d3.behavior.zoom().scaleExtent([1, 8]).center([params.heatmap.width / 2, params.heatmap.height / 2]).size([params.heatmap.width, params.heatmap.height]);
+    geneZoom = d3.behavior.zoom().scaleExtent([1, 8]).center([0, params.heatmap.height / 2]).size([params.heatmap.width, params.heatmap.height]);
+    d3.selectAll('button[data-zoom-gene]').on('click', d3.SpotMyGene.geneZoom(svg, params, heatmap, geneLabels, sampleLabels, geneZoom));
+    cells = svg.select('.cells-group');
+    geneZoom.on('zoom', d3.SpotMyGene.zoom(svg, params, heatmap, geneLabels, sampleLabels, geneZoom));
+    geneZoom(svg);
+    svg.on("wheel.zoom", null);
+    svg.on("mousewheel.zoom", null);
+    svg.on("MozMousePixelScroll.zoom", null);
+  }
+
+  return Zoom;
+
+})();
+
+d3.SpotMyGene._moveChecker = function(translateX, translateY, scale, params) {
+  var maxX, maxY, scaleX, scaleY;
+  scaleX = Math.min(scale, params.zoom.maxCellWidth / params.heatmap.cell.width);
+  if (scaleX < 1) {
+    scaleX = 1;
+  }
+  scaleY = Math.min(scale, params.zoom.maxCellHeight / params.heatmap.cell.height);
+  if (scaleY < 1) {
+    scaleY = 1;
+  }
+  maxX = (scaleX - 1) * params.heatmap.width;
+  maxY = (scaleY - 1) * params.heatmap.height;
+  if (translateX > 0) {
+    translateX = 0;
+  }
+  if (translateY > 0) {
+    translateY = 0;
+  }
+  if (translateX < -maxX) {
+    translateX = -maxX;
+  }
+  if (translateY < -maxY) {
+    translateY = -maxY;
+  }
+  return [[translateX, translateY], [scaleX, scaleY]];
+};
+
+d3.SpotMyGene.geneZoom = function(svg, params, heatmap, geneLabels, sampleLabels, behavior) {
+  return function() {
+    var center0, center1, coordinates, coordinates0, point, ref, scale, translate, translate0, translateY;
+    point = function(coordinates) {
+      var scale, translate;
+      scale = behavior.scale();
+      translate = behavior.translate();
+      return [coordinates[0] * scale + translate[0], coordinates[1] * scale + translate[1]];
+    };
+    coordinates = function(point) {
+      var scale, translate;
+      scale = behavior.scale();
+      translate = behavior.translate();
+      return [(point[0] - translate[0]) / scale, (point[1] - translate[1]) / scale];
+    };
+    center0 = behavior.center();
+    translate0 = behavior.translate();
+    coordinates0 = coordinates(center0);
+    scale = behavior.scale() * Math.pow(2, +this.getAttribute('data-zoom-gene'));
+    center1 = point(coordinates0);
+    translateY = translate0[1] + center0[1] - center1[1];
+    ref = d3.SpotMyGene._moveChecker(0, translate0[1] + center0[1] - center1[1], scale, params), translate = ref[0], scale = ref[1];
+    behavior.translate(translate);
+    behavior.scale(scale[1]);
+    geneLabels.zoom(scale[1], translate);
+    return heatmap.zoom([1, scale[1]], translate);
+  };
+};
+
+d3.SpotMyGene.zoom = function(svg, params, heatmap, geneLabels, sampleLabels, behavior) {
+  return function() {
+    var ref, scale, translate;
+    ref = d3.SpotMyGene._moveChecker(d3.event.translate[0], d3.event.translate[1], d3.event.scale, params), translate = ref[0], scale = ref[1];
+    behavior.translate(translate);
+    geneLabels.zoom(scale[1], [0, translate[1]]);
+    sampleLabels.zoom(scale[0], [0, translate[0]]);
+    return heatmap.zoom(scale, translate);
+  };
+};
+
+d3.SpotMyGene.Heatmap = function(container, cellsData, params, sampleScale, geneScale) {
+  var cells, colorScale, domain, heatmap;
   domain = d3.extent(cellsData, function(cell) {
     return cell.value;
   });
   domain.splice(1, 0, (domain[0] + domain[1]) / 2);
   colorScale = d3.scale.linear().domain(domain).range(params.colors);
-  cells = cells.selectAll('rect').data(cellsData, function(d) {
+  heatmap = container.select('.heatmap').append('g').attr('class', 'cells-group');
+  cells = heatmap.selectAll('rect').data(cellsData, function(d) {
     return d.sampleId + "-" + d.geneId;
   });
   cells.transition().style('fill', function(d) {
@@ -495,6 +747,14 @@ d3.SpotMyGene.Heatmap = function(parentContainer, cells, cellsData, params, samp
     return colorScale(d.value);
   });
   cells.exit().remove();
+  this.zoom = function(scale, translate) {
+    heatmap.attr('transform', "translate(" + translate + ")");
+    return cells.attr('x', function(d) {
+      return sampleScale(d.sampleId) * scale[0];
+    }).attr('y', function(d) {
+      return geneScale(d.geneId) * scale[1];
+    }).attr('width', params.cell.width * scale[0]).attr('height', params.cell.height * scale[1]);
+  };
   this.colorScale = colorScale;
   return this;
 };
@@ -863,9 +1123,8 @@ d3.SpotMyGene.Labels = (function() {
   var resize;
 
   resize = function(container, params) {
-    var cellHeight, currentSize, labelHeight, maxWidth, scale, text;
+    var currentSize, labelHeight, maxWidth, scale, text;
     text = container.selectAll('text');
-    cellHeight = params.height / text.data().length;
     labelHeight = container.select('text').node().getBBox().height;
     maxWidth = 0;
     text.each(function(label) {
@@ -875,12 +1134,17 @@ d3.SpotMyGene.Labels = (function() {
         return maxWidth = width;
       }
     });
-    scale = d3.min([cellHeight / labelHeight, params.width / maxWidth]);
+    scale = d3.min([params.step / labelHeight, params.width / maxWidth]);
     currentSize = parseFloat(container.style('font-size'));
     container.style('font-size', currentSize * scale);
-    return container.selectAll('text').attr('y', function(d, i) {
+    if (params.translate != null) {
+      container.attr('transform', "translate(" + params.translate + ")");
+    }
+    return container.selectAll('text').attr('transform', function(d, i) {
+      var offset;
       labelHeight = d3.select(this).node().getBBox().height;
-      return i * params.step + (labelHeight + cellHeight) / 2;
+      offset = i * params.step + (labelHeight + params.step) / 2;
+      return "translate(0, " + offset + ") " + params.transform;
     });
   };
 
@@ -889,19 +1153,29 @@ d3.SpotMyGene.Labels = (function() {
     this.params = params;
   }
 
-  Labels.prototype._render = function(items, params) {
+  Labels.prototype.zoom = function(scale, translate) {
+    var key, params, ref, value;
+    params = {};
+    ref = this.params;
+    for (key in ref) {
+      value = ref[key];
+      params[key] = value;
+    }
+    params.step = params.step * scale;
+    params.translate = translate;
+    return resize(this.container, params);
+  };
+
+  Labels.prototype._render = function(items) {
     var selection;
-    selection = this.container.style('font-size', params.fontSize).selectAll('text').data(items, function(item) {
+    selection = this.container.style('font-size', this.params.fontSize).selectAll('text').data(items, function(item) {
       return item.id;
     });
-    selection.text(function(d) {
-      return d.id;
-    }).attr('x', params.width).style('font-size', params.fontSize);
     selection.exit().remove();
     selection.enter().append('text').text(function(d) {
       return d.id;
-    }).attr('x', params.width).attr('text-anchor', 'end');
-    resize(this.container, params);
+    });
+    resize(this.container, this.params);
     return selection;
   };
 
@@ -914,7 +1188,7 @@ d3.SpotMyGene.GeneLabels = (function(superClass) {
 
   function GeneLabels(params, parentElement) {
     var container;
-    container = parentElement.select('.gene-labels');
+    container = parentElement.select('.gene-labels').append('g').attr('class', 'axis');
     GeneLabels.__super__.constructor.call(this, container, params);
   }
 
@@ -951,14 +1225,8 @@ d3.SpotMyGene.GeneLabels = (function(superClass) {
       });
       return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, true);
     };
-    params = this.params;
-    params = {
-      height: params.heatmap.height,
-      width: params.geneLabels.length,
-      step: params.heatmap.cell.height,
-      fontSize: 13
-    };
-    selection = this._render(genes, params);
+    selection = this._render(genes);
+    selection.attr('text-anchor', 'end');
     return d3.selectable(container, selection, updateSelected);
   };
 
@@ -966,229 +1234,54 @@ d3.SpotMyGene.GeneLabels = (function(superClass) {
 
 })(d3.SpotMyGene.Labels);
 
-d3.SpotMyGene.SampleLabels = function(params, parentElement) {
-  var render, sampleLabels, updateSelected;
-  sampleLabels = parentElement.select('.sample-labels').append('g').attr('class', 'x axis');
-  d3.SpotMyGene.dispatch.on('updateSelectedSamples.labels', function(selectedSamples, fromLabel) {
-    var gene, ids;
-    ids = (function() {
-      var l, len, results;
-      results = [];
-      for (l = 0, len = selectedSamples.length; l < len; l++) {
-        gene = selectedSamples[l];
-        results.push(gene.id);
+d3.SpotMyGene.SampleLabels = (function(superClass) {
+  extend(SampleLabels, superClass);
+
+  function SampleLabels(params, parentElement) {
+    var container;
+    container = parentElement.select('.sample-labels').append('g').attr('class', 'axis');
+    SampleLabels.__super__.constructor.call(this, container, params);
+  }
+
+  SampleLabels.prototype.render = function(samples) {
+    var container, selection, updateSelected;
+    container = this.container;
+    d3.SpotMyGene.dispatch.on('updateSelectedSamples.labels', function(selectedSamples, fromLabel) {
+      var ids, sample;
+      ids = (function() {
+        var l, len, results;
+        results = [];
+        for (l = 0, len = selectedSamples.length; l < len; l++) {
+          sample = selectedSamples[l];
+          results.push(sample.id);
+        }
+        return results;
+      })();
+      if (!fromLabel) {
+        return container.selectAll('text').each(function(d) {
+          var ref;
+          return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
+        }).classed('selected', function(d) {
+          return d._selected;
+        });
       }
-      return results;
-    })();
-    if (!fromLabel) {
-      return sampleLabels.selectAll('text').each(function(d) {
-        var ref;
-        return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
-      }).classed('selected', function(d) {
+    });
+    updateSelected = function() {
+      var selectedSamples;
+      container.selectAll('text').classed('selected', function(d) {
         return d._selected;
       });
-    }
-  });
-  updateSelected = function() {
-    var selectedSamples;
-    sampleLabels.selectAll('text').classed('selected', function(d) {
-      return d._selected;
-    });
-    selectedSamples = sampleLabels.selectAll('text').data().filter(function(sample) {
-      return sample._selected;
-    });
-    return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples, true);
+      selectedSamples = container.selectAll('text').data().filter(function(sample) {
+        return sample._selected;
+      });
+      return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples, true);
+    };
+    selection = this._render(samples);
+    selection.attr('text-anchor', 'start').on('mouseover.label', d3.SpotMyGene.dispatch.sampleMouseover).on('mouseout.label', d3.SpotMyGene.dispatch.sampleMouseout);
+    d3.selectable(container, selection, updateSelected);
+    return d3.SpotMyGene.listenSampleMouseover(container, this.params);
   };
-  render = function(samples) {
-    var selection;
-    selection = sampleLabels.selectAll('text').data(samples, function(sample) {
-      return sample.id;
-    });
-    selection.text(function(d) {
-      return d.id;
-    }).attr('x', function(d, i) {
-      return i * params.heatmap.cell.width;
-    });
-    selection.enter().append('text').text(function(d) {
-      return d.id;
-    }).attr('text-anchor', 'middle').attr('transform', function(d, i) {
-      return "translate(" + (params.heatmap.cell.width * i + params.heatmap.cell.width / 2) + ", " + (params.sampleLabels.length / 2) + ") rotate(-45)";
-    }).on('mouseover.label', d3.SpotMyGene.dispatch.sampleMouseover).on('mouseout.label', d3.SpotMyGene.dispatch.sampleMouseout);
-    selection.exit().remove();
-    d3.selectable(sampleLabels, sampleLabels.selectAll('text'), updateSelected);
-    return d3.SpotMyGene.listenSampleMouseover(sampleLabels, params);
-  };
-  this.render = render;
-  return this;
-};
 
-d3.selectable = function(ul, li, update) {
-  var isParentNode, keyCodes, lastDecision, select, selectFirst, selectLast;
-  lastDecision = void 0;
-  isParentNode = function(parentNode, node) {
-    if (!node) {
-      return false;
-    }
-    if (node === parentNode) {
-      return true;
-    }
-    return isParentNode(parentNode, node.parentNode);
-  };
-  selectFirst = function(selection) {
-    return selection.each(function(d, i) {
-      if (i === 0) {
-        return d._selected = true;
-      }
-    });
-  };
-  selectLast = function(selection) {
-    return selection.each(function(d, i, j) {
-      if (i === selection[j].length - 1) {
-        return d._selected = true;
-      }
-    });
-  };
-  select = function(d, node) {
-    var currentIndex, firstSelectedIndex, lastSelectedIndex, lis, max, min, parentNode;
-    parentNode = ul.filter(function() {
-      return isParentNode(this, node);
-    }).node();
-    lis = li.filter(function() {
-      return isParentNode(parentNode, this);
-    });
-    if (d3.event.shiftKey) {
-      firstSelectedIndex = void 0;
-      lastSelectedIndex = void 0;
-      currentIndex = void 0;
-      lis.each(function(dl, i) {
-        if (dl._selected) {
-          firstSelectedIndex || (firstSelectedIndex = i);
-          lastSelectedIndex = i;
-        }
-        if (this === node) {
-          currentIndex = i;
-        }
-      });
-      min = Math.min(firstSelectedIndex, lastSelectedIndex, currentIndex);
-      max = Math.max(firstSelectedIndex, lastSelectedIndex, currentIndex);
-      lis.each(function(d, i) {
-        d._selected = d3.event.ctrlKey && d._selected || i >= min && i <= max;
-      });
-    } else {
-      if (!d3.event.ctrlKey) {
-        lis.each(function(d) {
-          d._selected = false;
-        });
-      }
-      d._selected = !d._selected;
-    }
-    lastDecision = d._selected;
-    update();
-  };
-  li.on('mousedown.selectable', function(d) {
-    select(d, this);
-  });
-  li.on('mouseover.selectable', function(d) {
-    if (d3.event.which) {
-      d._selected = lastDecision;
-      update();
-    }
-  });
-  keyCodes = {
-    up: 38,
-    down: 40,
-    home: 36,
-    end: 35,
-    a: 65
-  };
-  ul.on('keydown.selectable', function() {
-    var focus, madeSelection, scope, selecteds;
-    if (d3.values(keyCodes).indexOf(d3.event.keyCode) === -1) {
-      return;
-    }
-    if (d3.event.keyCode === keyCodes.a && !d3.event.ctrlKey) {
-      return;
-    }
-    focus = ul.filter(':focus').node();
-    if (!focus) {
-      return;
-    }
-    d3.event.preventDefault();
-    scope = li.filter(function(d) {
-      return isParentNode(focus, this);
-    });
-    selecteds = scope.select(function(d) {
-      return d._selected;
-    });
-    if (!d3.event.ctrlKey) {
-      scope.each(function(d) {
-        d._selected = false;
-      });
-    }
-    madeSelection = false;
-    switch (d3.event.keyCode) {
-      case keyCodes.up:
-        selecteds.each(function(d, i, j) {
-          if (scope[j][i - 1]) {
-            madeSelection = d3.select(scope[j][i - 1]).data()[0]._selected = true;
-          }
-        });
-        if (!madeSelection) {
-          selectLast(scope);
-        }
-        break;
-      case keyCodes.down:
-        selecteds.each(function(d, i, j) {
-          if (scope[j][i + 1]) {
-            madeSelection = d3.select(scope[j][i + 1]).data()[0]._selected = true;
-          }
-        });
-        if (!madeSelection) {
-          selectFirst(scope);
-        }
-        break;
-      case keyCodes.home:
-        selectFirst(scope);
-        break;
-      case keyCodes.end:
-        selectLast(scope);
-        break;
-      case keyCodes.a:
-        scope.each(function(d) {
-          d._selected = !d3.event.shiftKey;
-        });
-    }
-    update();
-  });
-};
+  return SampleLabels;
 
-d3.SpotMyGene.zoom = function(params, behavior) {
-  var moveChecker;
-  moveChecker = function(translateX, translateY, scale, width, height) {
-    var maxX, maxY;
-    maxX = (scale - 1) * width;
-    maxY = (scale - 1) * height;
-    if (translateX > 0) {
-      translateX = 0;
-    }
-    if (translateY > 0) {
-      translateY = 0;
-    }
-    if (translateX < -maxX) {
-      translateX = -maxX;
-    }
-    if (translateY < -maxY) {
-      translateY = -maxY;
-    }
-    behavior.translate([translateX, translateY]);
-    return [translateX, translateY];
-  };
-  return function() {
-    var ref, scale, translateX, translateY;
-    scale = d3.event.scale;
-    ref = moveChecker(d3.event.translate[0], d3.event.translate[1], d3.event.scale, params.heatmap.width, params.heatmap.height), translateX = ref[0], translateY = ref[1];
-    d3.select('.cells-group').attr('transform', "translate(" + translateX + ", " + translateY + ") scale(" + scale + ", " + scale + ")");
-    d3.select('.x.axis').attr('transform', "translate(" + (translateX + params.heatmap.cell.height * scale / 2) + ", 0) scale(" + scale + ")");
-    return d3.select('.y.axis').attr('transform', "translate(0, " + (translateY + params.heatmap.cell.height * scale / 2) + ") scale(" + scale + ")");
-  };
-};
+})(d3.SpotMyGene.Labels);

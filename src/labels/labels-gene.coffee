@@ -1,6 +1,8 @@
 class d3.SpotMyGene.GeneLabels extends d3.SpotMyGene.Labels
   constructor: (params, parentElement) ->
     container = parentElement.select '.gene-labels'
+      .append 'g'
+      .attr 'class', 'axis'
     super container, params
 
   render: (genes, params) ->
@@ -23,11 +25,7 @@ class d3.SpotMyGene.GeneLabels extends d3.SpotMyGene.Labels
 
       d3.SpotMyGene.dispatch.updateSelectedGenes selectedGenes, true
 
-    params = @params
-    params =
-      height: params.heatmap.height
-      width: params.geneLabels.length
-      step: params.heatmap.cell.height
-      fontSize: 13
-    selection = @_render genes, params
+    selection = @_render genes
+    selection
+      .attr 'text-anchor', 'end'
     d3.selectable container, selection, updateSelected
