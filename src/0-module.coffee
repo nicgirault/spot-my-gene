@@ -9,7 +9,7 @@ d3.SpotMyGene.Core = (params) ->
   @
 
 d3.SpotMyGene.preRender = (params, data) ->
-  heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height
+  heatmapWidth = params.width - params.geneLabels.length - params.geneLabels.margin - params.geneDendogram.height - params.margins.left
   params.heatmap.cell.width = heatmapWidth / data.samples.length
   params.sampleDendogram.width = heatmapWidth
   params.heatmap.width = heatmapWidth

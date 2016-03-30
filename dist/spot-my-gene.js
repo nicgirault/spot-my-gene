@@ -17,7 +17,7 @@ d3.SpotMyGene.Core = function(params) {
 
 d3.SpotMyGene.preRender = function(params, data) {
   var heatmapWidth;
-  heatmapWidth = params.width - params.geneLabels.length - params.geneDendogram.height;
+  heatmapWidth = params.width - params.geneLabels.length - params.geneLabels.margin - params.geneDendogram.height - params.margins.left;
   params.heatmap.cell.width = heatmapWidth / data.samples.length;
   params.sampleDendogram.width = heatmapWidth;
   params.heatmap.width = heatmapWidth;
@@ -448,7 +448,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
 
 d3.SpotMyGene.Core.prototype.render2 = function(data, params) {
   var geneLabels, heatmap, sampleLabels, svg;
-  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.heatmap.cell.height * data.genes.length + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top);
+  svg = d3.select(params.container).append('svg').style('width', params.width).style('height', params.heatmap.height + params.sampleLabels.length + params.sampleDendogram.height + params.margins.top);
   svg.selectAll('*').remove();
   svg.append('g').attr('class', 'sample-dendogram').attr('transform', "translate(" + (params.margins.left + params.geneLabels.length + params.geneDendogram.height) + ", 0)");
   svg.append('g').attr('class', 'gene-dendogram').attr('transform', "translate(" + params.margins.left + ", " + (params.sampleLabels.length + params.sampleDendogram.height + params.heatmap.height + params.heatmap.cell.height / 2) + ") rotate(-90)");
@@ -1279,7 +1279,6 @@ d3.SpotMyGene.SampleLabels = (function(superClass) {
     selection = this._render(samples);
     selection.attr('text-anchor', 'start').on('mouseover.label', d3.SpotMyGene.dispatch.sampleMouseover).on('mouseout.label', d3.SpotMyGene.dispatch.sampleMouseout);
     d3.selectable(container, selection, updateSelected);
-    console.log(this.params);
     return d3.SpotMyGene.listenSampleMouseover(container, this.params);
   };
 
