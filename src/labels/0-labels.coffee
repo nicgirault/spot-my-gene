@@ -1,31 +1,31 @@
+d3.SpotMyGene._labelResize = (container, params) ->
+  text = container.selectAll 'text'
+
+  labelHeight = container.select 'text'
+    .node().getBBox().height
+
+  maxWidth = 0
+  text.each (label) ->
+    width = d3.select(@).node().getBBox().width
+    maxWidth = width if width > maxWidth
+
+  scale = d3.min [
+    params.step / labelHeight
+    params.width / maxWidth
+  ]
+  currentSize = parseFloat container.style 'font-size'
+  container.style 'font-size', currentSize * scale
+
+  if params.translate?
+    container.attr 'transform', "translate(#{params.translate})"
+
+  container.selectAll 'text'
+    .attr 'transform', (d, i) ->
+      labelHeight = d3.select(@).node().getBBox().height
+      offset = i * params.step + (labelHeight + params.step)/2
+      "translate(0, #{offset}) #{params.transform}"
+
 class d3.SpotMyGene.Labels
-  resize = (container, params) ->
-    text = container.selectAll 'text'
-
-    labelHeight = container.select 'text'
-      .node().getBBox().height
-
-    maxWidth = 0
-    text.each (label) ->
-      width = d3.select(@).node().getBBox().width
-      if width > maxWidth
-        maxWidth = width
-
-    scale = d3.min [
-      params.step / labelHeight
-      params.width / maxWidth
-    ]
-    currentSize = parseFloat container.style 'font-size'
-    container.style 'font-size', currentSize * scale
-
-    if params.translate?
-      container.attr 'transform', "translate(#{params.translate})"
-
-    container.selectAll 'text'
-      .attr 'transform', (d, i) ->
-        labelHeight = d3.select(@).node().getBBox().height
-        offset = i * params.step + (labelHeight + params.step)/2
-        "translate(0, #{offset}) #{params.transform}"
 
   constructor: (container, params) ->
     @container = container
@@ -40,7 +40,7 @@ class d3.SpotMyGene.Labels
     params.step = params.step * scale
     params.translate = translate
 
-    resize @container, params
+    d3.SpotMyGene._labelResize @container, params
 
   _render: (items) ->
     selection = @container
@@ -54,6 +54,6 @@ class d3.SpotMyGene.Labels
       .append 'text'
       .text (d) -> d.id
 
-    resize @container, @params
+    d3.SpotMyGene._labelResize @container, @params
 
     selection

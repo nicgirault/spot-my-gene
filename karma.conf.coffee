@@ -1,6 +1,6 @@
 module.exports = (config) ->
   config.set
-    frameworks: ['mocha', 'chai', 'sinon']
+    frameworks: ['jasmine', 'sinon']
     files: [
       'bower_components/d3/d3.js'
       'bower_components/c3/c3.js'
