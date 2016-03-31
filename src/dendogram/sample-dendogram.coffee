@@ -11,7 +11,7 @@ d3.SpotMyGene.SampleDendogram = (svg, params) ->
       names = (leaf.name for leaf in selectedLeaves)
       selectedSamples = samples.filter (sample) ->
         sample.id in names
-      d3.SpotMyGene.dispatch.updateSelectedSamples selectedSamples
+      d3.SpotMyGene.dispatch.updateSelectedSamples selectedSamples, 'dendogram'
 
     d3.SpotMyGene.dispatch.on 'updateSelectedSamples.dendogram', (selectedSamples, source) ->
       unless source is 'dendogram'

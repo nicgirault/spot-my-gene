@@ -41,6 +41,8 @@ d3.SpotMyGene.Core.prototype.render = (svg, data, params) ->
   sampleLabels = new d3.SpotMyGene.SampleLabels params.sampleLabels, svg
   sampleLabels.render data.samples
 
+  d3.SpotMyGene.labelSelect geneLabels, sampleLabels
+
   if params.zoom?.enabled
     d3.SpotMyGene.Zoom svg, params, heatmap, geneLabels, sampleLabels
 

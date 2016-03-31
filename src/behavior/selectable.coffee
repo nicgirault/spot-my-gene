@@ -6,7 +6,7 @@
 #
 # (c) 2012 Johannes J. Schmidt, TF
 
-d3.selectable = (ul, li, update) ->
+d3.SpotMyGene.selectable = (ul, li, update) ->
   lastDecision = undefined
 
   isParentNode = (parentNode, node) ->
