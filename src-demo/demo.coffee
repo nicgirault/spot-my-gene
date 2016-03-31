@@ -99,6 +99,6 @@ d3.json 'raw-data.json', (data) ->
       samples: samples
       genes: genes
       cells: cells
-    d3.SpotMyGene formatedData, {maxHeight: 700}
+    d3.SpotMyGene formatedData, {maxHeight: 500}
     genePie.render genes, geneAccessors.type
     samplePie.render samples, (sample) -> sample.summary.sx
