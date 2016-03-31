@@ -440,6 +440,7 @@ d3.SpotMyGene.Core.prototype.render = function(svg, data, params) {
   geneLabels.render(data.genes);
   sampleLabels = new d3.SpotMyGene.SampleLabels(params.sampleLabels, svg);
   sampleLabels.render(data.samples);
+  d3.SpotMyGene.labelSelect(geneLabels, sampleLabels);
   if ((ref = params.zoom) != null ? ref.enabled : void 0) {
     d3.SpotMyGene.Zoom(svg, params, heatmap, geneLabels, sampleLabels);
   }
@@ -492,7 +493,49 @@ d3.SpotMyGene.varianceScaling = function(cells) {
   return results;
 };
 
-d3.selectable = function(ul, li, update) {
+d3.SpotMyGene.labelSelect = function(geneLabels, sampleLabels) {
+  var onSelectionUpdate, updateSelected;
+  onSelectionUpdate = function(container) {
+    return function(selected, source) {
+      var d, ids;
+      ids = (function() {
+        var l, len, results;
+        results = [];
+        for (l = 0, len = selected.length; l < len; l++) {
+          d = selected[l];
+          results.push(d.id);
+        }
+        return results;
+      })();
+      if (source !== 'label') {
+        return container.selectAll('text').each(function(d) {
+          var ref;
+          return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
+        }).classed('selected', function(d) {
+          return d._selected;
+        });
+      }
+    };
+  };
+  updateSelected = function(container, event) {
+    return function() {
+      var selected;
+      container.selectAll('text').classed('selected', function(d) {
+        return d._selected;
+      });
+      selected = container.selectAll('text').data().filter(function(d) {
+        return d._selected;
+      });
+      return event(selected, 'label');
+    };
+  };
+  d3.SpotMyGene.dispatch.on('updateSelectedGenes.labels', onSelectionUpdate(geneLabels.container));
+  d3.SpotMyGene.dispatch.on('updateSelectedSamples.labels', onSelectionUpdate(sampleLabels.container));
+  d3.SpotMyGene.selectable(geneLabels.container, geneLabels.selection, updateSelected(geneLabels.container, d3.SpotMyGene.dispatch.updateSelectedGenes));
+  return d3.SpotMyGene.selectable(sampleLabels.container, sampleLabels.selection, updateSelected(sampleLabels.container, d3.SpotMyGene.dispatch.updateSelectedSamples));
+};
+
+d3.SpotMyGene.selectable = function(ul, li, update) {
   var isParentNode, keyCodes, lastDecision, select, selectFirst, selectLast;
   lastDecision = void 0;
   isParentNode = function(parentNode, node) {
@@ -958,7 +1001,7 @@ d3.SpotMyGene.SampleDendogram = function(svg, params) {
           var ref1;
           return ref1 = sample.id, indexOf.call(names, ref1) >= 0;
         });
-        return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples);
+        return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples, 'dendogram');
       });
       return d3.SpotMyGene.dispatch.on('updateSelectedSamples.dendogram', function(selectedSamples, source) {
         if (source !== 'dendogram') {
@@ -1119,35 +1162,33 @@ d3.SpotMyGene.defaults = function(parameters, defaults) {
   return toReturn;
 };
 
-d3.SpotMyGene.Labels = (function() {
-  var resize;
-
-  resize = function(container, params) {
-    var currentSize, labelHeight, maxWidth, scale, text;
-    text = container.selectAll('text');
-    labelHeight = container.select('text').node().getBBox().height;
-    maxWidth = 0;
-    text.each(function(label) {
-      var width;
-      width = d3.select(this).node().getBBox().width;
-      if (width > maxWidth) {
-        return maxWidth = width;
-      }
-    });
-    scale = d3.min([params.step / labelHeight, params.width / maxWidth]);
-    currentSize = parseFloat(container.style('font-size'));
-    container.style('font-size', currentSize * scale);
-    if (params.translate != null) {
-      container.attr('transform', "translate(" + params.translate + ")");
+d3.SpotMyGene._labelResize = function(container, params) {
+  var currentSize, labelHeight, maxWidth, scale, text;
+  text = container.selectAll('text');
+  labelHeight = container.select('text').node().getBBox().height;
+  maxWidth = 0;
+  text.each(function(label) {
+    var width;
+    width = d3.select(this).node().getBBox().width;
+    if (width > maxWidth) {
+      return maxWidth = width;
     }
-    return container.selectAll('text').attr('transform', function(d, i) {
-      var offset;
-      labelHeight = d3.select(this).node().getBBox().height;
-      offset = i * params.step + (labelHeight + params.step) / 2;
-      return "translate(0, " + offset + ") " + params.transform;
-    });
-  };
+  });
+  scale = d3.min([params.step / labelHeight, params.width / maxWidth]);
+  currentSize = parseFloat(container.style('font-size'));
+  container.style('font-size', currentSize * scale);
+  if (params.translate != null) {
+    container.attr('transform', "translate(" + params.translate + ")");
+  }
+  return container.selectAll('text').attr('transform', function(d, i) {
+    var offset;
+    labelHeight = d3.select(this).node().getBBox().height;
+    offset = i * params.step + (labelHeight + params.step) / 2;
+    return "translate(0, " + offset + ") " + params.transform;
+  });
+};
 
+d3.SpotMyGene.Labels = (function() {
   function Labels(container, params) {
     this.container = container;
     this.params = params;
@@ -1163,7 +1204,7 @@ d3.SpotMyGene.Labels = (function() {
     }
     params.step = params.step * scale;
     params.translate = translate;
-    return resize(this.container, params);
+    return d3.SpotMyGene._labelResize(this.container, params);
   };
 
   Labels.prototype._render = function(items) {
@@ -1175,7 +1216,7 @@ d3.SpotMyGene.Labels = (function() {
     selection.enter().append('text').text(function(d) {
       return d.id;
     });
-    resize(this.container, this.params);
+    d3.SpotMyGene._labelResize(this.container, this.params);
     return selection;
   };
 
@@ -1192,42 +1233,9 @@ d3.SpotMyGene.GeneLabels = (function(superClass) {
     GeneLabels.__super__.constructor.call(this, container, params);
   }
 
-  GeneLabels.prototype.render = function(genes, params) {
-    var container, selection, updateSelected;
-    container = this.container;
-    d3.SpotMyGene.dispatch.on('updateSelectedGenes.labels', function(selectedGenes, fromLabel) {
-      var gene, ids;
-      ids = (function() {
-        var l, len, results;
-        results = [];
-        for (l = 0, len = selectedGenes.length; l < len; l++) {
-          gene = selectedGenes[l];
-          results.push(gene.id);
-        }
-        return results;
-      })();
-      if (!fromLabel) {
-        return container.selectAll('text').each(function(d) {
-          var ref;
-          return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
-        }).classed('selected', function(d) {
-          return d._selected;
-        });
-      }
-    });
-    updateSelected = function() {
-      var selectedGenes;
-      container.selectAll('text').classed('selected', function(d) {
-        return d._selected;
-      });
-      selectedGenes = container.selectAll('text').data().filter(function(gene) {
-        return gene._selected;
-      });
-      return d3.SpotMyGene.dispatch.updateSelectedGenes(selectedGenes, true);
-    };
-    selection = this._render(genes);
-    selection.attr('text-anchor', 'end');
-    return d3.selectable(container, selection, updateSelected);
+  GeneLabels.prototype.render = function(genes) {
+    this.selection = this._render(genes);
+    return this.selection.attr('text-anchor', 'end');
   };
 
   return GeneLabels;
@@ -1244,42 +1252,9 @@ d3.SpotMyGene.SampleLabels = (function(superClass) {
   }
 
   SampleLabels.prototype.render = function(samples) {
-    var container, selection, updateSelected;
-    container = this.container;
-    d3.SpotMyGene.dispatch.on('updateSelectedSamples.labels', function(selectedSamples, fromLabel) {
-      var ids, sample;
-      ids = (function() {
-        var l, len, results;
-        results = [];
-        for (l = 0, len = selectedSamples.length; l < len; l++) {
-          sample = selectedSamples[l];
-          results.push(sample.id);
-        }
-        return results;
-      })();
-      if (!fromLabel) {
-        return container.selectAll('text').each(function(d) {
-          var ref;
-          return d._selected = (ref = d.id, indexOf.call(ids, ref) >= 0);
-        }).classed('selected', function(d) {
-          return d._selected;
-        });
-      }
-    });
-    updateSelected = function() {
-      var selectedSamples;
-      container.selectAll('text').classed('selected', function(d) {
-        return d._selected;
-      });
-      selectedSamples = container.selectAll('text').data().filter(function(sample) {
-        return sample._selected;
-      });
-      return d3.SpotMyGene.dispatch.updateSelectedSamples(selectedSamples, true);
-    };
-    selection = this._render(samples);
-    selection.attr('text-anchor', 'start').on('mouseover.label', d3.SpotMyGene.dispatch.sampleMouseover).on('mouseout.label', d3.SpotMyGene.dispatch.sampleMouseout);
-    d3.selectable(container, selection, updateSelected);
-    return d3.SpotMyGene.listenSampleMouseover(container, this.params);
+    this.selection = this._render(samples);
+    this.selection.attr('text-anchor', 'start').on('mouseover.label', d3.SpotMyGene.dispatch.sampleMouseover).on('mouseout.label', d3.SpotMyGene.dispatch.sampleMouseout);
+    return d3.SpotMyGene.listenSampleMouseover(this.container, this.params);
   };
 
   return SampleLabels;
